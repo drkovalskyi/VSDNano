@@ -9,7 +9,7 @@ VSDReader.h:
 testShort: VSDReader.h
 	root.exe TVSDProvider.C cms_nano_aod_bootstrap.C evd.C
 
-evd: VSDReader.h
+evd: VSDReader.h download
 	root.exe cms_nano_aod_bootstrap.C evd.C
 
 clean:

@@ -88,7 +88,7 @@ void registerCandidateCollection(const std::string &desc, const std::string &pur
 
 void cms_nano_aod_bootstrap()
 {
-   g_provider = new NanoVSDProvider("nano.root");
+   g_provider = new NanoVSDProvider("nano-CMSSW_11_0_0-RelValZTT-mcRun.root");
    {
       std::string d;
 
