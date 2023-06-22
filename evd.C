@@ -98,8 +98,8 @@ public:
             return new JetProxyBuilder();
         else if (vsdc->m_purpose == "MET")
             return new METProxyBuilder();
-        else if (vsdc->m_purpose == "MET")
-            return new METProxyBuilder();
+        else if (vsdc->m_purpose == "Muon")
+            return new MuonProxyBuilder();
         else if (vsdc->m_purpose == "Vertex")
             return new VertexProxyBuilder();
             
@@ -305,13 +305,6 @@ void createScenesAndViews()
    prop->IncRefCount();
 
 
-   // AMT this is ugly ... introduce a global contenxt
-   muonPropagator_g = new REveTrackPropagator();
-   muonPropagator_g->SetMagFieldObj(new REveMagFieldDuo(350, -3.5, 2.0));
-   muonPropagator_g->SetMaxR(850);
-   muonPropagator_g->SetMaxZ(1100);
-   muonPropagator_g->SetMaxOrbs(6);
-   muonPropagator_g->IncRefCount();
 
    viewContext = new REveViewContext();
    viewContext->SetBarrel(r, z);
@@ -327,7 +320,8 @@ void createScenesAndViews()
    tableInfo->table("VSDCandidate").
       column("pt",  1, "i.pt()").
       column("eta", 3, "i.eta()").
-      column("phi", 3, "i.phi()");
+      column("phi", 3, "i.phi()").
+      column("charge", 3, "i.charge()");
 
    tableInfo->table("VSDElectron").
       column("pt",  1, "i.pt()").

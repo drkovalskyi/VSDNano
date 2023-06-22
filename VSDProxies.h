@@ -322,6 +322,53 @@ class CandidateProxyBuilder : public REveDataSimpleProxyBuilderTemplate<VSDCandi
       // track->SetName(Form("element %s id=%d", iItemHolder->GetCName(), track->GetElementId()));
    }
 };
+
+//====================================================================================
+
+class MuonProxyBuilder : public REveDataSimpleProxyBuilderTemplate<VSDMuon>
+{
+private:
+REveTrackPropagator* muonPropagator_g = nullptr;
+  public:
+//   static REveTrackPropagator* s_progator = new REveTrackPropagator()
+   void initMuonPropagator()
+   {
+      if (muonPropagator_g)
+      return;
+      // AMT this is ugly ... introduce a global contenxt
+      muonPropagator_g = new REveTrackPropagator();
+      muonPropagator_g->SetMagFieldObj(new REveMagFieldDuo(350, -3.5, 2.0));
+      muonPropagator_g->SetMaxR(850);
+      muonPropagator_g->SetMaxZ(1100);
+      muonPropagator_g->SetMaxOrbs(6);
+      muonPropagator_g->IncRefCount();
+   }
+
+   using REveDataSimpleProxyBuilderTemplate<VSDMuon>::BuildItem;
+   void BuildItem(const VSDMuon &muon, int /*idx*/, REveElement *iItemHolder, const REveViewContext *context) override
+   {
+      int pdg = 11 * muon.charge();
+
+      float theta = EtaToTheta(muon.eta());
+      float phi = muon.phi();
+      float p = muon.pt() / TMath::Sin(theta);
+      float px = p * TMath::Cos(theta) * TMath::Cos(phi);
+      float py = p * TMath::Cos(theta) * TMath::Sin(phi);
+      float pz = p * TMath::Sin(theta);
+      float etot = p; // ???
+      auto x = new TParticle(pdg, 0, 0, 0, 0, 0,
+                             px, py, pz, p,
+                             0, 0, 0, 0);
+
+      initMuonPropagator();
+      auto track = new REveTrack((TParticle *)(x), 1, muonPropagator_g);
+      track->MakeTrack();
+      track->SetLineWidth(2);
+
+      SetupAddElement(track, iItemHolder, true);
+      // track->SetName(Form("element %s id=%d", iItemHolder->GetCName(), track->GetElementId()));
+   }
+};
 //====================================================================================
 class JetProxyBuilder : public REveDataSimpleProxyBuilderTemplate<VSDJet>
 {
@@ -470,7 +517,7 @@ class JetProxyBuilder : public REveDataSimpleProxyBuilderTemplate<VSDJet>
    {
       auto jet = new REveJetCone();
       jet->SetCylinder(context->GetMaxR() - 5, context->GetMaxZ());
-      jet->AddEllipticCone(dj.eta(), dj.phi(), 0.2, 0.2);
+      jet->AddEllipticCone(dj.eta(), dj.phi(), dj.coneR(), dj.coneR());
       SetupAddElement(jet, iItemHolder, true);
       jet->SetTitle(Form("jet [%d] pt = %f\n", idx, dj.pt()));
       // printf("make jet %d pt == %f\n", idx, dj.pt());

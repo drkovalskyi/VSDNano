@@ -32,10 +32,10 @@ class VSDCandidate : public VSDBase
 protected:
    // ROOT::Math::Polar3DPoint momentum;
    float m_eta{0.f}; float m_phi{0.f}; float m_pt{0.f};
-   int m_charge{1};
+   int m_charge{0};
 
 public:
-   VSDCandidate(float ieta, float iphi, float ipt) : m_eta(ieta), m_phi(iphi), m_pt(ipt){}
+   VSDCandidate(float ipt, float ieta, float iphi, int charge = 0) :m_pt(ipt), m_eta(ieta), m_phi(iphi), m_charge(charge){}
    float phi() const { return m_phi; }
    float eta() const { return m_eta; }
    float pt() const { return m_pt; }
@@ -49,11 +49,13 @@ class VSDJet : public VSDCandidate
 {
 private:
    float m_hadFraction{0.f};
+   float m_coneR{0.2f}; // cone radius in eta phi space
 
 public:
    float hadFraction() const { return m_hadFraction; }
+   float coneR() const { return m_coneR; }
 
-   VSDJet(float eta, float phi, float pt, float had_fraction) : VSDCandidate(eta, phi, pt), m_hadFraction(had_fraction) {}
+   VSDJet(float pt, float eta, float phi, float had_fraction, float coneR = 0.2) : VSDCandidate(pt, eta, phi), m_hadFraction(had_fraction), m_coneR(coneR) {}
 
    using VSDBase::dump;
    void dump() { printf("VSDJet pt:%.2f, eta:%.2f, phi:%.2f / had_frac: %.2f\n", m_pt, m_eta, m_phi, m_hadFraction); }
@@ -61,14 +63,14 @@ public:
 
 
 /////////////////////////////////////////////////
-class VSDElectron : public VSDCandidate
+class VSDMuon : public VSDCandidate
 {
-   float m_hadronicOverEm{0.f};
+   bool m_global{false};
 
 public:
-   float hadronicOverEm() const { return m_hadronicOverEm; }
+   float global() const { return m_global; }
 
-   VSDElectron(float eta, float phi, float pt, float had_fraction) : VSDCandidate(eta, phi, pt), m_hadronicOverEm(had_fraction) {}
+   VSDMuon(float pt, float eta, float phi, int charge, bool global) : VSDCandidate(pt, eta, phi, charge), m_global(global) {}
 };
 
 ////////////////////////////////////////////////
@@ -79,7 +81,7 @@ private:
 public:
    float sumEt() { return m_sumEt; }
    using VSDBase::dump;
-   VSDMET(float phi, float pt, float sumEt) :  VSDCandidate(0.f, phi, pt), m_sumEt(sumEt) {}
+   VSDMET(float pt, float eta, float phi, float sumEt) :  VSDCandidate(pt, eta, phi), m_sumEt(sumEt) {}
    void dump() { printf("VSDMET: phi: 2f, sumEt:%.2f / pt: %.2f\n", m_phi, m_sumEt); }
 };
 
