@@ -156,4 +156,36 @@ class VSDProvider
    };
 };
 
+VSDProvider *g_provider = nullptr;
+
+////////////////////////////////////////////////////////////
+void makeVSDClassAndObj(const std::string& ci, const std::string &desc, Color_t c, std::string f)
+{
+   std::string exp = std::regex_replace(ci, std::regex("ZZZ"), desc);
+   std::cout << exp << "\n";
+   gROOT->ProcessLine(exp.c_str());
+   VSDCollection *coll = g_provider->RefColl(desc);
+   coll->m_color = c;
+   coll->m_filter = f;
+   coll->m_name = desc;
+}
+
+
+////////////////////////////////////////////////////////////
+void MakeCollFromFillStr(const std::string& fillBody, const std::string &desc, const std::string &purpose, Color_t c, std::string f)
+{
+   std::string cname = desc; cname += purpose; cname +="Collection";
+   std::stringstream ss;
+   ss << "class "<< cname << " : public VSDCollection \n"
+      << "{\n"
+      << "public:\n"
+      <<    cname << "(const std::string &n, const std::string &p) : VSDCollection(n, p) {}\n"
+      << "  virtual void fill(VSDReader &r) {\n" << fillBody << "\n}\n"
+      << "};\n"
+      << "\n"
+      << "g_provider->addCollection(new " << cname << "(\"ZZZ\",\"" << purpose << "\"));\n";
+   makeVSDClassAndObj(ss.str(), desc, c, f);
+}
+
+
 #endif // #ifdef VSDBase
