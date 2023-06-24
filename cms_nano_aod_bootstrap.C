@@ -1,7 +1,44 @@
-#include "NanoVSDProvider.h"
+#include "VSDBase.h"
+//#define VSDReader_cxx
+//#include "VSDReader.h"
+
+class NanoVSDProvider : public VSDProvider
+{
+private:
+   VSDReader *m_data{nullptr};
+
+public:
+   NanoVSDProvider(TTree* tree)
+   {
+      m_tree = tree;
+      m_data = new VSDReader(m_tree);
+   }
+
+   ///////////////////////////////////////////////////////////////////
+   // User code goes here
+   void fill_collections() override
+   {
+      // event info presumes as a collection
+      m_eventInfoRun = m_data->run;
+      m_eventInfoLumi = m_data->luminosityBlock;
+      m_eventInfoEvent = m_data->event;
+      printf("nanoprovier %lld events total %lld !!!!! \n", m_eventIdx, GetNumEvents());
+
+      // reformat
+      for (auto h : m_collections)
+      {
+         h->m_list.clear();
+         h->fill(*m_data);
+
+         // debug
+         for (auto e : h->m_list)
+            e->dump();
+
+      }
+   }
+};
 
 NanoVSDProvider *g_provider = nullptr;
-
 //////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////
 
@@ -93,9 +130,9 @@ void registerMuonCollection(const std::string &desc, const std::string &purpose,
 }
 ////////////////////////////////////////////////////////////
 
-void cms_nano_aod_bootstrap()
+void cms_nano_aod_bootstrap(TTree* tree)
 {
-   g_provider = new NanoVSDProvider("nano-CMSSW_11_0_0-RelValZTT-mcRun.root");
+   g_provider = new NanoVSDProvider(tree);
    {
       g_provider->addCollection(new NanoVSDJetCollection("Jet", "Jet", kYellow));
       g_provider->addCollection(new NanoVSDVertexCollection("Vertex", "Vertex", kGreen));

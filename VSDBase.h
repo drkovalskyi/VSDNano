@@ -1,6 +1,8 @@
 #ifndef VSDBase_h
 #define VSDBase_h
 
+class VSDReader;
+
 /////////////////////////////////////////////////
 class VSDBase
 {
@@ -112,21 +114,36 @@ class VSDProvider
 {
    public:
 
-// event info
+   TTree *m_tree{nullptr};
+   std::vector<VSDCollection *> m_collections;
+
+   // event info
    uint m_eventInfoRun{99};
    uint m_eventInfoLumi{99};
    Long64_t m_eventInfoEvent{99};
    Long64_t m_eventIdx{0};
 
+   virtual Long64_t GetNumEvents() {return (int)m_tree->GetEntriesFast();}
 
-   // re-formatting
-   virtual void GotoEvent(int eventIdx) = 0;
-   virtual Long64_t GetNumEvents() = 0;
+   void addCollection(VSDCollection *h)
+   {
+      m_collections.push_back(h);
+   }
 
-   // filtering
+/*
+   // filtering / NOT IMPLEMENTED !!!
    virtual void setFilterExpr(const std::string &) = 0;
    bool getFilterEnabled() { return false; }
-   std::vector<VSDCollection *> m_collections;
+*/
+
+   virtual void GotoEvent(int eventIdx) {
+      m_eventIdx = eventIdx;
+      m_tree->GetEntry(eventIdx);
+
+      fill_collections();
+   }
+
+   virtual void fill_collections() = 0;
 
    VSDCollection* RefColl(const std::string &name)
    {

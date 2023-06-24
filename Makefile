@@ -6,9 +6,6 @@ nano-CMSSW_11_0_0-RelValZTT-mcRun.root:
 VSDReader.h:
 	root.exe makeClass.C
 
-testShort: VSDReader.h
-	root.exe TVSDProvider.C cms_nano_aod_bootstrap.C evd.C
-
 evd: VSDReader.h download
 	root.exe cms_nano_aod_bootstrap.C evd.C
 
