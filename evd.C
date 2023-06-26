@@ -125,7 +125,7 @@ public:
             return new MuonProxyBuilder();
         else if (vsdc->m_purpose == "Vertex")
             return new VertexProxyBuilder();
-            
+
         std::cout << typeid(vsdc).name() << '\n';
 
         // amt alternative way
@@ -152,7 +152,7 @@ public:
             if (!tc)
             throw( std::runtime_error("addCollection" +  vsdc->m_name) );
         }
-          
+
 
         collection->SetItemClass(TClass::GetClass(class_name.c_str()));
         collection->SetMainColor(vsdc->m_color);
