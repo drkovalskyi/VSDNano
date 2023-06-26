@@ -37,6 +37,29 @@ ROOT::Experimental::REveProjectionManager* mngRhoZ;
 ROOT::Experimental::REveViewContext* viewContext;
 ROOT::Experimental::REveTrackPropagator* muonPropagator_g;
 
+//==============================================================================
+//== Selection =================================================================
+//==============================================================================
+
+class FWSelectionDeviator : public REveSelection::Deviator {
+public:
+   FWSelectionDeviator() {}
+
+   using REveSelection::Deviator::DeviateSelection;
+   bool DeviateSelection(REveSelection *selection, REveElement *el, bool multi, bool secondary,
+                         const std::set<int> &secondary_idcs)
+   {
+      if (el) {
+         auto *colItems = dynamic_cast<REveDataItemList *>(el);
+         if (colItems) {
+            // std::cout << "Deviate RefSelected=" << colItems->RefSelectedSet().size() << " passed set " << secondary_idcs.size() << "\n";
+            ExecuteNewElementPicked(selection, colItems, multi, true, colItems->RefSelectedSet());
+            return true;
+         }
+      }
+      return false;
+   }
+};
 
 //==============================================================================
 //== Collection Manager =============================================================
@@ -387,6 +410,11 @@ void evd()
    eventMng->UpdateTitle();
    //eventMng->SetName(prov->GetFile()->GetName());
    eveMng->GetWorld()->AddElement(eventMng);
+
+
+   auto deviator = std::make_shared<FWSelectionDeviator>();
+   eveMng->GetSelection()->SetDeviator(deviator);
+   eveMng->GetHighlight()->SetDeviator(deviator);
 
    for (auto &vsdc : event->m_collections)
    {
