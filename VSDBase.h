@@ -109,54 +109,68 @@ public:
 
 
 /////////////////////////////////////////////////
-
+class VSDProvider;
+VSDProvider *g_provider = nullptr;
 class VSDProvider
 {
-   public:
+public:
+   struct EventInfo
+   { 
+      uint run{99};
+      uint lumi{99};
+      Long64_t event{99};
+   };
+
+   VSDProvider(TTree* t) : m_tree(t){}
 
    TTree *m_tree{nullptr};
+   EventInfo m_eventInfo;
+   VSDReader* m_data{nullptr};
+   Long64_t m_eventIdx{0};
    std::vector<VSDCollection *> m_collections;
 
-   // event info
-   uint m_eventInfoRun{99};
-   uint m_eventInfoLumi{99};
-   Long64_t m_eventInfoEvent{99};
-   Long64_t m_eventIdx{0};
 
-   virtual Long64_t GetNumEvents() {return (int)m_tree->GetEntriesFast();}
+   virtual Long64_t GetNumEvents() { return (int)m_tree->GetEntriesFast(); }
 
    void addCollection(VSDCollection *h)
    {
       m_collections.push_back(h);
    }
 
-/*
-   // filtering / NOT IMPLEMENTED !!!
-   virtual void setFilterExpr(const std::string &) = 0;
-   bool getFilterEnabled() { return false; }
-*/
-
-   virtual void GotoEvent(int eventIdx) {
+   virtual void GotoEvent(int eventIdx)
+   {
       m_eventIdx = eventIdx;
       m_tree->GetEntry(eventIdx);
 
-      fill_collections();
+      // fill VSD collections
+      for (auto h : m_collections)
+      {
+         h->m_list.clear();
+      //  h->fill(*m_data);
+
+         h->fill(*(this->m_data));
+
+         // debug
+         for (auto e : h->m_list)
+            e->dump();
+      }
+      set_event_info(m_eventInfo);
    }
 
-   virtual void fill_collections() = 0;
+  // virtual void fill_collections() = 0;
+   virtual void set_event_info(EventInfo& ) = 0;
 
-   VSDCollection* RefColl(const std::string &name)
+   VSDCollection *RefColl(const std::string &name)
    {
-       for (auto collection : m_collections)
-       {
-           if (name == collection->m_name)
-               return collection;
-       }
-       return nullptr;
+      for (auto collection : m_collections)
+      {
+         if (name == collection->m_name)
+            return collection;
+      }
+      return nullptr;
    };
 };
 
-VSDProvider *g_provider = nullptr;
 
 ////////////////////////////////////////////////////////////
 void makeVSDClassAndObj(const std::string& ci, const std::string &desc, Color_t c, std::string f)

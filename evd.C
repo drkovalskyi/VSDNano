@@ -281,8 +281,8 @@ public:
    {
 
       printf("======= update title %lld/%lld event ifnfo run=[%d], lumi=[%d], event = [%lld]\n", m_event->m_eventIdx, m_event->GetNumEvents(),
-             m_event->m_eventInfoLumi, m_event->m_eventInfoRun, m_event->m_eventInfoEvent);
-      SetTitle(Form("%lld/%lld/%d/%d/%lld",m_event->m_eventIdx, m_event->GetNumEvents(), m_event->m_eventInfoLumi , m_event->m_eventInfoRun,  m_event->m_eventInfoEvent));
+             m_event->m_eventInfo.lumi, m_event->m_eventInfo.run, m_event->m_eventInfo.event);
+      SetTitle(Form("%lld/%lld/%d/%d/%lld",m_event->m_eventIdx, m_event->GetNumEvents(), m_event->m_eventInfo.lumi , m_event->m_eventInfo.run,  m_event->m_eventInfo.event));
       StampObjProps();
    }
    virtual void NextEvent()

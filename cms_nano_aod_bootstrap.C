@@ -2,37 +2,20 @@
 
 class NanoVSDProvider : public VSDProvider
 {
-private:
-   VSDReader *m_data{nullptr};
-
 public:
-   NanoVSDProvider(TTree *tree)
+   NanoVSDProvider(TTree *tree) : VSDProvider(tree)
    {
-      m_tree = tree;
       m_data = new VSDReader(m_tree);
    }
 
    ///////////////////////////////////////////////////////////////////
    // User code goes here
-   void fill_collections() override
+   void set_event_info(VSDProvider::EventInfo& eventInfo) override
    {
       printf("nanoprovier %lld events total %lld !!!!! \n", m_eventIdx, GetNumEvents());
-
-      // event info presumes as a collection
-      m_eventInfoRun = m_data->run;
-      m_eventInfoLumi = m_data->luminosityBlock;
-      m_eventInfoEvent = m_data->event;
-
-      // reformat
-      for (auto h : m_collections)
-      {
-         h->m_list.clear();
-         h->fill(*m_data);
-
-         // debug
-         for (auto e : h->m_list)
-            e->dump();
-      }
+      eventInfo.run = m_data->run;
+      eventInfo.lumi = m_data->luminosityBlock;
+      eventInfo.event = m_data->event;
    }
 };
 
