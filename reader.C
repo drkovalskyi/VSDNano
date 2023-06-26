@@ -1,6 +1,7 @@
 void reader()
-{
-    auto file = TFile::Open("nano-CMSSW_11_0_0-RelValZTT-mcRun.root");
+{ 
+    TFile::SetCacheFileDir(".");
+    auto file = TFile::Open("http://amraktad.web.cern.ch/amraktad/nano-CMSSW_11_0_0-RelValZTT-mcRun.root");
     auto tree = (TTree *)file->Get("Events");
 
     // setup data access
@@ -15,4 +16,6 @@ void reader()
     TString cmd = TString::Format("cms_nano_aod_bootstrap((TTree*)%p)", tree);
     printf("CMD %s \n", cmd.Data());
     gROOT->ProcessLine(cmd.Data());
+    gROOT->LoadMacro("evd.C");
+    gROOT->ProcessLine("evd()");
 }
