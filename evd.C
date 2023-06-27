@@ -34,6 +34,7 @@ using namespace ROOT::Experimental;
 // globals
 ROOT::Experimental::REveManager* eveMng;
 ROOT::Experimental::REveProjectionManager* mngRhoZ;
+ROOT::Experimental::REveProjectionManager* mngRPhi;
 ROOT::Experimental::REveViewContext* viewContext;
 ROOT::Experimental::REveTrackPropagator* muonPropagator_g;
 
@@ -176,6 +177,12 @@ public:
             {
                 REveElement *product = glBuilder->CreateProduct("RhoZViewType", viewContext);
                 mngRhoZ->ImportElements(product, scene);
+                continue;
+            }
+            if (!strncmp(scene->GetCTitle(), "RPhiProjected", 8))
+            {
+                REveElement *product = glBuilder->CreateProduct("RPhiViewType", viewContext);
+                mngRPhi->ImportElements(product, scene);
                 continue;
             }
             else if ((!strncmp(scene->GetCName(), "Event scene", 8)))
@@ -372,13 +379,28 @@ void createScenesAndViews()
    b1->SetMainColor(kCyan);
    eveMng->GetGlobalScene()->AddElement(b1);
 
+   // Projected RPhi
+   if (1)
+   {
+      auto rPhiEventScene = eveMng->SpawnNewScene("RPhi Scene", "RPhiProjected");
+      mngRPhi = new REveProjectionManager(REveProjection::kPT_RPhi);
+      mngRPhi->SetImportEmpty(true);
+      auto rPhiView = eveMng->SpawnNewViewer("RPhi View");
+      rPhiView->SetCameraType(REveViewer::kCameraOrthoXOY);
+      rPhiView->AddScene(rPhiEventScene);
+
+      auto pgeoScene = eveMng->SpawnNewScene("Projection Geometry");
+      mngRPhi->ImportElements(b1,pgeoScene );
+      rPhiView->AddScene(pgeoScene);
+   }
    // Projected RhoZ
-   if (1){
-      auto rhoZEventScene = eveMng->SpawnNewScene("RhoZ Scene","RhoZProjected");
+   if (1)
+   {
+      auto rhoZEventScene = eveMng->SpawnNewScene("RhoZ Scene", "RhoZProjected");
       mngRhoZ = new REveProjectionManager(REveProjection::kPT_RhoZ);
       mngRhoZ->SetImportEmpty(true);
       auto rhoZView = eveMng->SpawnNewViewer("RhoZ View");
-   rhoZView->SetCameraType(REveViewer::kCameraOrthoXOY);
+      rhoZView->SetCameraType(REveViewer::kCameraOrthoXOY);
       rhoZView->AddScene(rhoZEventScene);
 
       auto pgeoScene = eveMng->SpawnNewScene("Projection Geometry");
@@ -396,6 +418,7 @@ void createScenesAndViews()
       tableScene->AddElement(viewContext->GetTableViewInfo());
    }
 
+   // ((REveViewer*)(eveMng->GetViewers()->FirstChild()))->SetMandatory(false);
 }
 ////////////////////////////////////////////////////
 ////////////////////////////////////////////////////
