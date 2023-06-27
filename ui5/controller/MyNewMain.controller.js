@@ -1,6 +1,8 @@
 sap.ui.define(['rootui5/eve7/controller/Main.controller',
-               'rootui5/eve7/lib/EveManager'
-], function(MainController, EveManager) {
+               'rootui5/eve7/lib/EveManager',
+               "sap/ui/core/mvc/XMLView",
+               'sap/ui/core/Fragment'
+], function(MainController, EveManager, XMLView, Fragement) {
    "use strict";
 
    return MainController.extend("custom.MyNewMain", {
@@ -52,6 +54,23 @@ sap.ui.define(['rootui5/eve7/controller/Main.controller',
          alert("=====User support: dummy@cern.ch");
       },
 
+      eventFilterShow: function () {
+         if (this.eventFilter){
+            this.eventFilter.openFilterDialog();
+         }
+         else {
+            let pthis = this;
+            XMLView.create({
+               viewName: "custom.view.EventFilter",
+            }).then(function (oView) {
+               pthis.eventFilter = oView.getController();
+               pthis.eventFilter.setGUIElement(pthis.fw2gui);
+              // console.log(oView, "filter dialog", oView.byId("filterDialog"));
+               pthis.eventFilter.makeTables();
+               pthis.eventFilter.openFilterDialog();
+            });
+         }
+      },
       showEventInfo : function() {
          // console.log("showEventInfo");
          let ei = this.fw2gui.fTitle.split("/");
