@@ -64,7 +64,7 @@
             </MenuButton>
          </contentLeft>
          <contentMiddle>
-                <FormattedText id="centerTitle" htmlText="CMS Nanoaod"/>
+                <FormattedText id="centerTitle" htmlText="Universal Format"/>
          </contentMiddle>
         </Bar>
      </customHeader>
