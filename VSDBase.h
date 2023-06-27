@@ -87,6 +87,13 @@ public:
    void dump() { printf("VSDMET: phi: 2f, sumEt:%.2f / pt: %.2f\n", m_phi, m_sumEt); }
 };
 
+////////////////////////////////////////////////
+struct VSDEventInfo
+{
+      uint run{99};
+      uint lumi{99};
+      Long64_t event{99};
+};
 /////////////////////////////////////////////////
 // Event structs
 /////////////////////////////////////////////////
@@ -114,17 +121,11 @@ VSDProvider *g_provider = nullptr;
 class VSDProvider
 {
 public:
-   struct EventInfo
-   { 
-      uint run{99};
-      uint lumi{99};
-      Long64_t event{99};
-   };
 
    VSDProvider(TTree* t) : m_tree(t){}
 
    TTree *m_tree{nullptr};
-   EventInfo m_eventInfo;
+   VSDEventInfo m_eventInfo;
    VSDReader* m_data{nullptr};
    Long64_t m_eventIdx{0};
    std::vector<VSDCollection *> m_collections;
@@ -154,11 +155,11 @@ public:
          for (auto e : h->m_list)
             e->dump();
       }
-      set_event_info(m_eventInfo);
+      set_event_info();
    }
 
   // virtual void fill_collections() = 0;
-   virtual void set_event_info(EventInfo& ) = 0;
+   virtual void set_event_info() = 0;
 
    VSDCollection *RefColl(const std::string &name)
    {

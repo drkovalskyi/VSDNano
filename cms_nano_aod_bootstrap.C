@@ -10,12 +10,12 @@ public:
 
    ///////////////////////////////////////////////////////////////////
    // User code goes here
-   void set_event_info(VSDProvider::EventInfo& eventInfo) override
+   void set_event_info() override
    {
       printf("nanoprovier %lld events total %lld !!!!! \n", m_eventIdx, GetNumEvents());
-      eventInfo.run = m_data->run;
-      eventInfo.lumi = m_data->luminosityBlock;
-      eventInfo.event = m_data->event;
+      m_eventInfo.run = m_data->run;
+      m_eventInfo.lumi = m_data->luminosityBlock;
+      m_eventInfo.event = m_data->event;
    }
 };
 
