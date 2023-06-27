@@ -50,19 +50,11 @@
                 </Menu>
               </menu>
             </MenuButton>
-
-            <MenuButton text="Help" type="Default"  enabled="true"
-                        styleClass="rightMargin sapUiTinyMarginBottom" visible="true">
-              <menu>
-                <Menu >
-                  <items>
-                    <MenuItem text="User Guide" press="OnWebsocketClosed" />
-                    <MenuItem text="Contact"  press="showHelp"  />
-                  </items>
-                </Menu>
-              </menu>
-            </MenuButton>
+          <Button id="invMassBtn" text="InvMassDialog" type="Transparent"
+               tooltip="Toggle GED editor" press="onPressInvMass"/>
          </contentLeft>
+
+         
          <contentMiddle>
 
             <Label id="runLabel" text="Run "  class="sapUiTinyMargin"/>

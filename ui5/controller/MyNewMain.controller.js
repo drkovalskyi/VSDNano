@@ -2,7 +2,7 @@ sap.ui.define(['rootui5/eve7/controller/Main.controller',
                'rootui5/eve7/lib/EveManager',
                "sap/ui/core/mvc/XMLView",
                'sap/ui/core/Fragment'
-], function(MainController, EveManager, XMLView, Fragement) {
+], function(MainController, EveManager, XMLView, Fragment) {
    "use strict";
 
    return MainController.extend("custom.MyNewMain", {
@@ -96,6 +96,60 @@ sap.ui.define(['rootui5/eve7/controller/Main.controller',
 
       toggleGedEditor: function() {
          this.byId("Summary").getController().toggleEditor();
+      },
+
+      onPressInvMass: function(oEvent)
+      {
+
+			var oButton = oEvent.getSource(),
+				oView = this.getView();
+
+			// create popover
+			if (!this._pPopover) {
+				this._pPopover = Fragment.load({
+					id: oView.getId(),
+					name: "custom.view.Popover",
+					controller: this
+            }).then(function (oPopover) {
+               oView.addDependent(oPopover);
+
+
+               var list = new sap.m.List({
+                  inset: true
+               });
+
+               var data = {
+                  navigation: [{ title: "ffffff" }, { title: "fffffffff" }]
+               };
+
+
+               var itemTemplate = new sap.m.StandardListItem({
+                  title: "{title}"
+               });
+
+               var oModel = new sap.ui.model.json.JSONModel();
+               // set the data for the model
+               oModel.setData(data);
+               // set the model to the list
+               list.setModel(oModel);
+
+               // bind Aggregation
+               list.bindAggregation("items", "/navigation", itemTemplate);
+
+               oPopover.addContent(list);
+					// oPopover.bindElement("/ProductCollection/0");
+					return oPopover;
+				});
+			}
+			this._pPopover.then(function(oPopover) {
+				oPopover.openBy(oButton);
+			});
+      },
+      handleInvMassCalcPress : function()
+      {
+			this.byId("myPopover").close();
+			alert("Calculate mir has been sent");
+
       }
 
    });
