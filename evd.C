@@ -288,8 +288,8 @@ public:
    {
 
       printf("======= update title %lld/%lld event ifnfo run=[%d], lumi=[%d], event = [%lld]\n", m_event->m_eventIdx, m_event->GetNumEvents(),
-             m_event->m_eventInfo.lumi, m_event->m_eventInfo.run, m_event->m_eventInfo.event);
-      SetTitle(Form("%lld/%lld/%d/%d/%lld",m_event->m_eventIdx, m_event->GetNumEvents(), m_event->m_eventInfo.lumi , m_event->m_eventInfo.run,  m_event->m_eventInfo.event));
+             m_event->m_eventInfo.m_lumi, m_event->m_eventInfo.m_run, m_event->m_eventInfo.m_event);
+      SetTitle(Form("%lld/%lld/%d/%d/%lld",m_event->m_eventIdx, m_event->GetNumEvents(), m_event->m_eventInfo.m_lumi , m_event->m_eventInfo.m_run,  m_event->m_eventInfo.m_event));
       StampObjProps();
    }
    virtual void NextEvent()
@@ -442,6 +442,8 @@ void evd()
    for (auto &vsdc : event->m_collections)
    {
       printf("vsd collection ====== %s\n", vsdc->m_name.c_str());
+      if (vsdc->m_purpose == "EventInfo")
+         continue;
       collectionMng->addCollection(vsdc);
    }
 
