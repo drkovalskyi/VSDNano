@@ -40,7 +40,6 @@ public:
    int m_charge{0};
 
 public:
-   // VSDCandidate(){}
    // VSDCandidate(float ipt, float ieta, float iphi, int charge = 0) :m_pt(ipt), m_eta(ieta), m_phi(iphi), m_charge(charge){}
    float phi() const { return m_phi; }
    float eta() const { return m_eta; }
@@ -62,7 +61,6 @@ public:
    float hadFraction() const { return m_hadFraction; }
    float coneR() const { return m_coneR; }
 
-   //VSDJet(){}
    //VSDJet(float pt, float eta, float phi, float had_fraction, float coneR = 0.2) : VSDCandidate(pt, eta, phi), m_hadFraction(had_fraction), m_coneR(coneR) {}
 
    using VSDBase::dump;
@@ -78,7 +76,6 @@ public:
 
    float global() const { return m_global; }
 
-   // VSDMuon(){}
    // VSDMuon(float pt, float eta, float phi, int charge, bool global) : VSDCandidate(pt, eta, phi, charge), m_global(global) {}
 };
 
@@ -127,9 +124,10 @@ VSDProvider *g_provider = nullptr;
 class VSDProvider
 {
 public:
-
-   VSDProvider(TTree* t) : m_tree(t){}
-
+   VSDProvider(TTree *t) : m_tree(t)
+   {
+      m_data = new VSDReader(t);
+   }
    TTree *m_tree{nullptr};
    VSDEventInfo m_eventInfo;
    VSDReader* m_data{nullptr};
@@ -173,7 +171,7 @@ public:
          {
             VSDEventInfo *ei = (VSDEventInfo *)vsdc->m_list[0];
             m_eventInfo = *ei;
-            printf("...... setting event info %lld \n", m_eventInfo.m_event);
+            // printf("...... setting event info %lld \n", m_eventInfo.m_event);
             return;
          }
       }
@@ -240,14 +238,38 @@ public:
             cmd += "}\n // end loop through vsd array";
          }
          // printf("VSD collection fill body  %s \n ", cmd.Data());
-         MakeCollFromFillStr(cmd, desc, vsdClassType, color, filter);
+
+         // make sources for class
+         std::string cname = desc;
+         cname += vsdClassType;
+         cname += "Collection";
+         std::stringstream ss;
+         ss << "class " << cname << " : public VSDCollection \n"
+            << "{\n"
+            << "public:\n"
+            << cname << "(const std::string &n, const std::string &p) : VSDCollection(n, p) {}\n"
+            << "  virtual void fill(VSDReader &r) {\n"
+            << cmd.Data() << "\n}\n"
+            << "};\n"
+            << "\n"
+            << "g_provider->addCollection(new " << cname << "(\"ZZZ\",\"" << vsdClassType << "\"));\n";
+
+         std::cout << ss.str();
+         std::string exp = std::regex_replace(desc, std::regex("ZZZ"), desc);
+         gROOT->ProcessLine(exp.c_str());
+
+         // config collection
+         VSDCollection *coll = RefColl(desc);
+         coll->m_color = color;
+         coll->m_filter = filter;
+         coll->m_name = desc;
       }
       catch (std::exception &e)
       {
          std::cerr << e.what() << "\n";
       }
    };
-
+/*
    ////////////////////////////////////////////////////////////
    void MakeCollFromFillStr(TString &fillBody, const std::string &desc, const std::string &vsdClassType, Color_t color, std::string filter)
    {
@@ -280,7 +302,7 @@ public:
       coll->m_color = c;
       coll->m_filter = f;
       coll->m_name = desc;
-   }
+   }*/
 }; // end class VSD provider
 
 #endif // #ifdef VSDBase
