@@ -124,16 +124,17 @@ VSDProvider *g_provider = nullptr;
 class VSDProvider
 {
 public:
-   VSDProvider(TTree *t) : m_tree(t)
+   VSDProvider(TTree *t, nlohmann::json* cfg) : m_tree(t), m_config(cfg)
    {
       m_data = new VSDReader(t);
    }
+   
    TTree *m_tree{nullptr};
    VSDEventInfo m_eventInfo;
    VSDReader* m_data{nullptr};
    Long64_t m_eventIdx{0};
    std::vector<VSDCollection *> m_collections;
-   nlohmann::json m_config;
+   nlohmann::json* m_config{nullptr};
 
    virtual Long64_t GetNumEvents() { return (int)m_tree->GetEntriesFast(); }
 
@@ -187,7 +188,7 @@ public:
       return nullptr;
    };
 
-   nlohmann::json &RefVSDMemberConfig() { return m_config; }
+  // nlohmann::json &RefVSDMemberConfig() { return m_config; }
 
    ////////////////////////////////////////////////////////////
    void registerCollection(const std::string &desc, const std::string &vsdClassType, Color_t color = kBlue, std::string filter = "")
@@ -196,7 +197,7 @@ public:
       {
          using namespace nlohmann;
          TString cmd;
-         json &j = m_config[vsdClassType];
+         json &j = m_config->at(vsdClassType);
 
          std::cout << j.dump(4) << "\n";
          std::string numKey;
