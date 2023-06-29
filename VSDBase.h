@@ -254,8 +254,9 @@ public:
             << "\n"
             << "g_provider->addCollection(new " << cname << "(\"ZZZ\",\"" << vsdClassType << "\"));\n";
 
-         std::cout << ss.str();
-         std::string exp = std::regex_replace(desc, std::regex("ZZZ"), desc);
+         std::cout << ss.str() << "\n\n.....\n";
+         std::string exp = std::regex_replace(ss.str(), std::regex("ZZZ"), desc);
+         std::cout << "Expression to evaluate" << exp << "\n";
          gROOT->ProcessLine(exp.c_str());
 
          // config collection
