@@ -1,5 +1,6 @@
 #include "VSDBase.h"
 
+#include "TROOT.h"
 #include "ROOT/REveDataCollection.hxx"
 #include "ROOT/REveDataSimpleProxyBuilderTemplate.hxx"
 #include "ROOT/REveManager.hxx"
@@ -20,6 +21,9 @@
 #include "ROOT/REveStraightLineSet.hxx"
 #include "ROOT/REveTrans.hxx"
 #include "ROOT/REveGeoShape.hxx"
+#include "ROOT/REveBox.hxx"
+#include "TGeoBBox.h"
+#include "TGeoTube.h"
 
 using namespace ROOT::Experimental;
 
@@ -299,24 +303,25 @@ public:
 class CandidateProxyBuilder : public REveDataSimpleProxyBuilderTemplate<VSDCandidate>
 {
    using REveDataSimpleProxyBuilderTemplate<VSDCandidate>::BuildItem;
-   void BuildItem(const VSDCandidate &c_electron, int /*idx*/, REveElement *iItemHolder, const REveViewContext *context) override
+   void BuildItem(const VSDCandidate &el, int /*idx*/, REveElement *iItemHolder, const REveViewContext *context) override
    {
-      VSDCandidate &electron = (VSDCandidate &)(c_electron);
-      int pdg = 11 * electron.charge();
+      VSDCandidate &cand = (VSDCandidate &)(el); // amt need a const
+      // int pdg = 11 * cand.charge();
 
-      float theta = EtaToTheta(electron.eta());
-      float phi = electron.phi();
-      float p = electron.pt() / TMath::Sin(theta);
-      float px = p * TMath::Cos(theta) * TMath::Cos(phi);
-      float py = p * TMath::Cos(theta) * TMath::Sin(phi);
-      float pz = p * TMath::Sin(theta);
-      float etot = p; // ???
-      auto x = new TParticle(pdg, 0, 0, 0, 0, 0,
-                             px, py, pz, p,
-                             0, 0, 0, 0);
+      float theta = EtaToTheta(cand.eta());
+      float pz = cand.pt() / TMath::Tan(theta);
+      float px = cand.pt() * TMath::Cos(cand.phi());
+      float py = cand.pt() * TMath::Sin(cand.phi());
+
+      REveRecTrack t;
+      t.fBeta = 1.;
+      t.fV = REveVector(); // iData.vx(), iData.vy(), iData.vz());
+      t.fP = REveVector(px, py, pz);
+      t.fSign = cand.m_charge;
+      REveTrack *track = new REveTrack(&t, context->GetPropagator());
 
       // printf("==============  BUILD track %s (pt=%f, eta=%f) \n", iItemHolder->GetCName(), p.Pt(), p.Eta());
-      auto track = new REveTrack((TParticle *)(x), 1, context->GetPropagator());
+      // auto track = new REveTrack((TParticle *)(x), 1, context->GetPropagator());
       track->MakeTrack();
       SetupAddElement(track, iItemHolder, true);
       // track->SetName(Form("element %s id=%d", iItemHolder->GetCName(), track->GetElementId()));
@@ -328,13 +333,13 @@ class CandidateProxyBuilder : public REveDataSimpleProxyBuilderTemplate<VSDCandi
 class MuonProxyBuilder : public REveDataSimpleProxyBuilderTemplate<VSDMuon>
 {
 private:
-REveTrackPropagator* muonPropagator_g = nullptr;
-  public:
-//   static REveTrackPropagator* s_progator = new REveTrackPropagator()
+   REveTrackPropagator *muonPropagator_g = nullptr;
+
+public:
    void initMuonPropagator()
    {
       if (muonPropagator_g)
-      return;
+         return;
       // AMT this is ugly ... introduce a global contenxt
       muonPropagator_g = new REveTrackPropagator();
       muonPropagator_g->SetMagFieldObj(new REveMagFieldDuo(350, -3.5, 2.0));
@@ -347,21 +352,19 @@ REveTrackPropagator* muonPropagator_g = nullptr;
    using REveDataSimpleProxyBuilderTemplate<VSDMuon>::BuildItem;
    void BuildItem(const VSDMuon &muon, int /*idx*/, REveElement *iItemHolder, const REveViewContext *context) override
    {
-      int pdg = 11 * muon.charge();
-
-      float theta = EtaToTheta(muon.eta());
-      float phi = muon.phi();
-      float p = muon.pt() / TMath::Sin(theta);
-      float px = p * TMath::Cos(theta) * TMath::Cos(phi);
-      float py = p * TMath::Cos(theta) * TMath::Sin(phi);
-      float pz = p * TMath::Sin(theta);
-      float etot = p; // ???
-      auto x = new TParticle(pdg, 0, 0, 0, 0, 0,
-                             px, py, pz, p,
-                             0, 0, 0, 0);
-
       initMuonPropagator();
-      auto track = new REveTrack((TParticle *)(x), 1, muonPropagator_g);
+      float theta = EtaToTheta(muon.eta());
+      float pz = muon.pt() / TMath::Tan(theta);
+      float px = muon.pt() * TMath::Cos(muon.phi());
+      float py = muon.pt() * TMath::Sin(muon.phi());
+
+      REveRecTrack t;
+      t.fBeta = 1.;
+      t.fV = REveVector(); // iData.vx(), iData.vy(), iData.vz());
+      t.fP = REveVector(px, py, pz);
+      t.fSign = muon.m_charge;
+
+      auto track = new REveTrack(&t, muonPropagator_g);
       track->MakeTrack();
       track->SetLineWidth(2);
 
