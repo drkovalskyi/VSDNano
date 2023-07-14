@@ -2,12 +2,19 @@
 #define VSDBase_h
 
 #include "nlohmann/json.hpp"
-class VSDReader;
+#include "TStyle.h"
+#include "Rtypes.h"
+#include "TTree.h"
+
+
+class VSDProvider;
+VSDProvider *g_provider = nullptr;
 
 /////////////////////////////////////////////////
 class VSDBase
 {
 public:
+virtual ~VSDBase(){}
    virtual void dump() { printf("dump VSD Base class\n"); }
 };
 
@@ -23,6 +30,7 @@ public:
 public:
    // VSDVertex(){}
    // VSDVertex(float ix, float iy, float iz) { m_x= ix; m_y = iy; m_z = iz;}
+   virtual ~VSDVertex(){}
    void dump() { printf("VSDVertex x:%.2f, y:%.2f, z:%.2f \n", m_x, m_y,m_z); }
 
    float x() const { return m_x; }
@@ -37,16 +45,17 @@ class VSDCandidate : public VSDBase
 public:
    // ROOT::Math::Polar3DPoint momentum;
    float m_eta{0.f}; float m_phi{0.f}; float m_pt{0.f};
-   int m_charge{0};
+   float m_charge{0};
 
 public:
+   virtual ~VSDCandidate(){}
    // VSDCandidate(float ipt, float ieta, float iphi, int charge = 0) :m_pt(ipt), m_eta(ieta), m_phi(iphi), m_charge(charge){}
    float phi() const { return m_phi; }
    float eta() const { return m_eta; }
    float pt() const { return m_pt; }
    float charge() const { return m_charge; }
 
-   void dump() { printf("VSDCanidate %f\n", m_pt); }
+   void dump() { printf("VSDCanidate pt = %f, charge = %f \n", m_pt, m_charge); }
 };
 
 /////////////////////////////////////////////////
@@ -61,6 +70,7 @@ public:
    float hadFraction() const { return m_hadFraction; }
    float coneR() const { return m_coneR; }
 
+   virtual ~VSDJet(){}
    //VSDJet(float pt, float eta, float phi, float had_fraction, float coneR = 0.2) : VSDCandidate(pt, eta, phi), m_hadFraction(had_fraction), m_coneR(coneR) {}
 
    using VSDBase::dump;
@@ -76,6 +86,7 @@ public:
 
    float global() const { return m_global; }
 
+   virtual ~VSDMuon(){}
    // VSDMuon(float pt, float eta, float phi, int charge, bool global) : VSDCandidate(pt, eta, phi, charge), m_global(global) {}
 };
 
@@ -86,6 +97,8 @@ public:
   float m_sumEt{0.f};
 public:
    // VSDMET(float pt, float eta, float phi, float sumEt) :  VSDCandidate(pt, eta, phi), m_sumEt(sumEt) {}
+   virtual ~VSDMET(){}
+
    float sumEt() { return m_sumEt; }
    void dump() { printf("VSDMET: phi: 2f, sumEt:%.2f / pt: %.2f\n", m_phi, m_sumEt); }
 };
@@ -106,205 +119,86 @@ struct VSDEventInfo : public VSDBase
 class VSDCollection
 {
 public:
-   VSDCollection(const std::string& n, const std::string& p, Color_t c=kBlue, std::string f="") : 
-                 m_name(n), m_purpose(p), m_color(c), m_filter(f) {}
+   VSDCollection(const std::string &n, const std::string &p, Color_t c = kBlue, std::string f = "") : m_name(n), m_purpose(p), m_color(c), m_filter(f) {}
+
+   VSDCollection() {}
+   virtual ~VSDCollection() {}
    std::string m_name;
    std::string m_purpose;
+   Color_t m_color{kBlue};
    std::string m_filter;
-   Color_t     m_color{kBlue};
    std::vector<VSDBase *> m_list;
 
-   virtual void fill(VSDReader &) {}
+   virtual void fill() { printf("not implemented !!!!!!!!!!!!!!!!!! EXIT !!!!\n\n");}
 };
 
-
-/////////////////////////////////////////////////
-class VSDProvider;
-VSDProvider *g_provider = nullptr;
 class VSDProvider
 {
 public:
-   VSDProvider(TTree *t, nlohmann::json* cfg) : m_tree(t), m_config(cfg)
-   {
-      m_data = new VSDReader(t);
-   }
-   
-   TTree *m_tree{nullptr};
-   VSDEventInfo m_eventInfo;
-   VSDReader* m_data{nullptr};
-   Long64_t m_eventIdx{0};
-   std::vector<VSDCollection *> m_collections;
-   nlohmann::json* m_config{nullptr};
 
-   virtual Long64_t GetNumEvents() { return (int)m_tree->GetEntriesFast(); }
+    virtual ~VSDProvider(){}
 
-   void addCollection(VSDCollection *h)
-   {
-      m_collections.push_back(h);
-   }
+    VSDEventInfo m_eventInfo;
+    //  VSDReader* m_data{nullptr};
+    Long64_t m_eventIdx{0};
+    std::vector<VSDCollection *> m_collections;
+    nlohmann::json *m_config{nullptr};
 
-   virtual void GotoEvent(int eventIdx)
-   {
-      m_eventIdx = eventIdx;
-      m_tree->GetEntry(eventIdx);
+    virtual Long64_t GetNumEvents() { return 0; }
 
-      // fill VSD collections
-      for (auto h : m_collections)
-      {
-         h->m_list.clear();
+    void addCollection(VSDCollection *h)
+    {
+        m_collections.push_back(h);
+    }
 
-         h->fill(*(this->m_data));
+    virtual void GotoEvent(int eventIdx)
+    {
+        printf("VSDProvider::GotoEvent   start \n");
+        // m_tree->GetEntry(eventIdx);
+        m_eventIdx = eventIdx;
 
-         // debug
-         for (auto e : h->m_list)
-            e->dump();
-      }
-      set_event_info();
-   }
+        // fill VSD collections
+        for (auto h : m_collections)
+        {
+            h->m_list.clear();
 
-   virtual void set_event_info()
-   {
-      printf("vsd provier %lld events total %lld !!!!! \n", m_eventIdx, GetNumEvents());
+            h->fill();
 
-      for (auto &vsdc : m_collections)
-      {
-         if (vsdc->m_purpose == "EventInfo")
-         {
-            VSDEventInfo *ei = (VSDEventInfo *)vsdc->m_list[0];
-            m_eventInfo = *ei;
-            // printf("...... setting event info %lld \n", m_eventInfo.m_event);
-            return;
-         }
-      }
-   }
-
-   VSDCollection *RefColl(const std::string &name)
-   {
-      for (auto collection : m_collections)
-      {
-         if (name == collection->m_name)
-            return collection;
-      }
-      return nullptr;
-   };
-
-  // nlohmann::json &RefVSDMemberConfig() { return m_config; }
-
-   ////////////////////////////////////////////////////////////
-   void registerCollection(const std::string &desc, const std::string &vsdClassType, Color_t color = kBlue, std::string filter = "")
-   {
-      try
-      {
-         using namespace nlohmann;
-         TString cmd;
-         json &j = m_config->at(vsdClassType);
-
-         std::cout << j.dump(4) << "\n";
-         std::string numKey;
-         try {
-               numKey = j["N"];
-         }
-         catch (std::exception &e) {
-            std::cout << "missing collection size info " << e.what() << "\n"; 
-         }
-
-         // single element collection
-         if (numKey == "undef")
-         {
-            cmd += TString::Format("auto vsdObj = new VSD%s();\n", vsdClassType.c_str());
-            for (json::iterator it = j.begin(); it != j.end(); ++it)
+            // debug
+            if (0)
             {
-               if (it.key() == "N")
-                  continue;
-
-               std::string k = it.key(), v = it.value();
-               cmd += TString::Format("vsdObj->m_%s = r.ZZZ%s;\n", k.c_str(), v.c_str());
+                for (auto e : h->m_list)
+                    e->dump();
             }
-            cmd += "m_list.push_back(vsdObj);\n";
-         }
-         else // create from array
-         {
-            cmd += TString::Format("for (int i = 0; i < r.%sZZZ; ++i) {\n", numKey.c_str());
-            cmd += TString::Format("auto vsdObj = new VSD%s();\n", vsdClassType.c_str());
+        }
+        set_event_info();
+    }
 
-            for (json::iterator it = j.begin(); it != j.end(); ++it)
+    virtual void set_event_info()
+    {
+        printf("vsd provier %lld events total %lld !!!!! \n", m_eventIdx, GetNumEvents());
+
+        for (auto &vsdc : m_collections)
+        {
+            if (vsdc->m_purpose == "EventInfo")
             {
-               if (it.key() == "N")
-                  continue;
-
-               std::string k = it.key(), v = it.value();
-               cmd += TString::Format("vsdObj->m_%s = r.ZZZ%s[i]; \n", k.c_str(), v.c_str());
+                VSDEventInfo *ei = (VSDEventInfo *)vsdc->m_list[0];
+                m_eventInfo = *ei;
+                printf("...... setting event info %lld \n", m_eventInfo.m_event);
+                return;
             }
-            cmd += "m_list.push_back(vsdObj);\n";
-            cmd += "}\n // end loop through vsd array";
-         }
-         // printf("VSD collection fill body  %s \n ", cmd.Data());
+        }
+    }
 
-         // make sources for class
-         std::string cname = desc;
-         cname += vsdClassType;
-         cname += "Collection";
-         std::stringstream ss;
-         ss << "class " << cname << " : public VSDCollection \n"
-            << "{\n"
-            << "public:\n"
-            << cname << "(const std::string &n, const std::string &p) : VSDCollection(n, p) {}\n"
-            << "  virtual void fill(VSDReader &r) {\n"
-            << cmd.Data() << "\n}\n"
-            << "};\n"
-            << "\n"
-            << "g_provider->addCollection(new " << cname << "(\"ZZZ\",\"" << vsdClassType << "\"));\n";
+    VSDCollection *RefColl(const std::string &name)
+    {
+        for (auto collection : m_collections)
+        {
+            if (name == collection->m_name)
+                return collection;
+        }
+        return nullptr;
+    };
 
-         std::cout << ss.str() << "\n\n.....\n";
-         std::string exp = std::regex_replace(ss.str(), std::regex("ZZZ"), desc);
-         std::cout << "Expression to evaluate" << exp << "\n";
-         gROOT->ProcessLine(exp.c_str());
-
-         // config collection
-         VSDCollection *coll = RefColl(desc);
-         coll->m_color = color;
-         coll->m_filter = filter;
-         coll->m_name = desc;
-      }
-      catch (std::exception &e)
-      {
-         std::cerr << e.what() << "\n";
-      }
-   };
-/*
-   ////////////////////////////////////////////////////////////
-   void MakeCollFromFillStr(TString &fillBody, const std::string &desc, const std::string &vsdClassType, Color_t color, std::string filter)
-   {
-      std::string cname = desc;
-      cname += vsdClassType;
-      cname += "Collection";
-      std::stringstream ss;
-      ss << "class " << cname << " : public VSDCollection \n"
-         << "{\n"
-         << "public:\n"
-         << cname << "(const std::string &n, const std::string &p) : VSDCollection(n, p) {}\n"
-         << "  virtual void fill(VSDReader &r) {\n"
-         << fillBody.Data() << "\n}\n"
-         << "};\n"
-         << "\n"
-         << "g_provider->addCollection(new " << cname << "(\"ZZZ\",\"" << vsdClassType << "\"));\n";
-
-
-      // std::cout << ss.str();   
-      makeVSDClassAndObj(ss.str(), desc, color, filter);
-   }
-
-   ////////////////////////////////////////////////////////////
-   void makeVSDClassAndObj(const std::string &ci, const std::string &desc, Color_t c, std::string f)
-   {
-      std::string exp = std::regex_replace(ci, std::regex("ZZZ"), desc);
-      // std::cout << exp << "\n";
-      gROOT->ProcessLine(exp.c_str());
-      VSDCollection *coll = g_provider->RefColl(desc);
-      coll->m_color = c;
-      coll->m_filter = f;
-      coll->m_name = desc;
-   }*/
-}; // end class VSD provider
-
+};
 #endif // #ifdef VSDBase
