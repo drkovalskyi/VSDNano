@@ -19,6 +19,8 @@
 #include <ROOT/REveViewer.hxx>
 #include <ROOT/REveViewContext.hxx>
 #include <ROOT/REveDataCollection.hxx>
+#include <ROOT/REveSelection.hxx>
+#include <ROOT/REveManager.hxx>
 
 // #include "TTree.h"
 #include "TGeoTube.h"
@@ -27,8 +29,10 @@
 //#include "TRandom.h"
 #include "TApplication.h"
 #include "TMathBase.h"
+#include "TMath.h"
 #include "TClass.h"
-
+#include "TGeoBBox.h"
+#include "TEnv.h"
 using namespace ROOT::Experimental;
 
 // globals
@@ -62,6 +66,112 @@ public:
    }
 };
 
+class InvMassDialog : public REveElement
+{
+   public:
+   void Calculate()
+   {
+      fTitle = "<pre>";
+      printf("FWWebInvMassDialog::calculate() .... \n");
+      double sum_len = 0;
+      double sum_len_xy = 0;
+      int n = 0;
+      REveVector first, second, sum;
+      addLine("");
+      addLine("--------------------------------------------------+--------------");
+      addLine("       px          py          pz          pT     | Collection");
+      addLine("--------------------------------------------------+--------------");
+
+      TClass *rc_class = TClass::GetClass(typeid(VSDCandidate));
+      auto s = ROOT::Experimental::gEve->GetScenes()->FindChild("Collections");
+      for (auto &c : s->RefChildren())
+      {
+         REveDataCollection *coll = (REveDataCollection *)(c);
+         auto items = coll->GetItemList();
+         for (auto &au : items->RefAunts())
+         {
+            if (au == ROOT::Experimental::gEve->GetSelection())
+            {
+                std::cout << c->GetName() << " " << items->GetImpliedSelected() << " --- " << items->RefSelectedSet().size() << "\n";
+                for (auto &ss : items->RefSelectedSet())
+                {
+                    TString line;
+                    TClass *model_class = coll->GetItemClass();
+                    // std::cout << "item with type " << model_class->GetName() << "\n";
+                    void *model_data = const_cast<void *>(coll->GetDataPtr(ss));
+                    REveVector v;
+
+                    VSDCandidate *rc = reinterpret_cast<VSDCandidate *>(model_class->DynamicCast(rc_class, model_data));
+
+                    float theta = EtaToTheta(rc->eta());
+                    float pz = rc->pt() / TMath::Tan(theta);
+                    float px = rc->pt() * TMath::Cos(rc->phi());
+                    float py = rc->pt() * TMath::Sin(rc->phi());
+
+                    if (rc != nullptr)
+                    {
+                        v.Set(px, py, pz);
+                        rc->dump();
+
+                        sum += v;
+                        sum_len += TMath::Sqrt(v.Mag2());
+                        sum_len_xy += TMath::Sqrt(v.Perp2());
+
+                        line = TString::Format("  %+10.3f  %+10.3f  %+10.3f  %10.3f", v.fX, v.fY, v.fZ, TMath::Sqrt(v.Perp2()));
+                    }
+                    else
+                    {
+                        line = TString::Format("  -------- not a VSDCandidate --------");
+                    }
+                    line += TString::Format("  | %s[%d]", coll->GetCName(), ss);
+
+                    addLine(line);
+
+                    if (n == 0)
+                        first = v;
+                    else if (n == 1)
+                        second = v;
+                }
+
+                break;
+            }
+         }
+      }
+
+      addLine("--------------------------------------------------+--------------");
+      addLine(TString::Format(
+          "  %+10.3f  %+10.3f  %+10.3f  %10.3f  | Sum", sum.fX, sum.fY, sum.fZ, TMath::Sqrt(sum.Perp2())));
+      addLine("");
+      addLine(TString::Format("m  = %10.3f", TMath::Sqrt(TMath::Max(0.0, sum_len * sum_len - sum.Mag2()))));
+      addLine(TString::Format("mT = %10.3f", TMath::Sqrt(TMath::Max(0.0, sum_len_xy * sum_len_xy - sum.Perp2()))));
+      addLine(TString::Format("HT = %10.3f", sum_len_xy));
+
+      if (n == 2)
+      {
+        // addLine(TString::Format("deltaPhi  = %+6.4f", deltaPhi(first.Phi(), second.Phi()))); //AMT deltaPhi exisiting only in data formats
+         addLine(TString::Format("deltaEta  = %+6.4f", first.Eta() - second.Eta()));
+        // addLine(TString::Format("deltaR    = % 6.4f", deltaR(first.Eta(), first.Phi(), second.Eta(), second.Phi())));
+      }
+
+      fTitle += "</pre>";
+      StampObjProps();
+   }
+
+   void
+   addLine(const TString &line)
+   {
+      fTitle += "\n";
+      fTitle += line.Data();
+   }
+   int WriteCoreJson(nlohmann::json &j, int rnr_offset) override
+   {
+     int ret = REveElement::WriteCoreJson(j, rnr_offset);
+   
+      std::cout << j.dump(4);
+      j["UT_PostStream"] = "UT_refresh_invmass_dialog";
+      return ret;
+   }
+};
 //==============================================================================
 //== Collection Manager =============================================================
 //==============================================================================
@@ -151,7 +261,7 @@ public:
             class_name = "VSD" + vsdc->m_purpose; // !!! This works beacuse it is a root macro
             tc  = TClass::GetClass(class_name.c_str());
             if (!tc)
-            throw( std::runtime_error("addCollection" +  vsdc->m_name) );
+            throw( std::runtime_error("addCollection " +  vsdc->m_name ) );
         }
 
 
@@ -169,7 +279,7 @@ public:
         for (auto &scene : eveMng->GetScenes()->RefChildren())
         {
 
-            REveElement *product = glBuilder->CreateProduct(scene->GetTitle(), viewContext);
+            // REveElement *product = glBuilder->CreateProduct(scene->GetTitle(), viewContext);
 
             if (strncmp(scene->GetCName(), "Table", 5) == 0)
                 continue;
@@ -271,12 +381,18 @@ class EventManager : public REveElement
 private:
    CollectionManager    *m_collectionMng{nullptr};
    VSDProvider          *m_event{nullptr};
+   std::chrono::duration<double> m_deltaTime{1};
+   std::thread *m_timerThread{nullptr};
+   std::mutex m_mutex;
+   std::condition_variable m_CV;
+   bool m_autoplay{false};
+   
 
 public:
-   EventManager(CollectionManager* m, VSDProvider* e):REveElement("EventManager") {m_collectionMng  = m; m_event = e; }
+   EventManager(CollectionManager* m, VSDProvider* e):REveElement("EventManager") {m_collectionMng  = m; m_event = e; m_deltaTime = std::chrono::milliseconds(500);}
    virtual ~EventManager() {}
 
-   virtual void GotoEvent(int id)
+   virtual void GotoEvent(int id)  
    {
       m_event->GotoEvent(id);
       UpdateTitle();
@@ -286,7 +402,6 @@ public:
 
   void UpdateTitle()
    {
-
       printf("======= update title %lld/%lld event ifnfo run=[%d], lumi=[%d], event = [%lld]\n", m_event->m_eventIdx, m_event->GetNumEvents(),
              m_event->m_eventInfo.m_lumi, m_event->m_eventInfo.m_run, m_event->m_eventInfo.m_event);
       SetTitle(Form("%lld/%lld/%d/%d/%lld",m_event->m_eventIdx, m_event->GetNumEvents(), m_event->m_eventInfo.m_lumi , m_event->m_eventInfo.m_run,  m_event->m_eventInfo.m_event));
@@ -305,18 +420,95 @@ public:
    virtual void PreviousEvent()
    {
       int id;
-      if (m_event->m_eventIdx == 0) {
-         id = m_event->GetNumEvents()-1;
-
+      if (m_event->m_eventIdx == 0)
+      {
+         id = m_event->GetNumEvents() - 1;
       }
-      else {
-          id = m_event->m_eventIdx -1;
+      else
+      {
+         id = m_event->m_eventIdx - 1;
       }
 
       printf("going to previous %d \n", id);
       GotoEvent(id);
    }
 
+   void autoplay_scheduler()
+   {
+      while (true)
+      {
+         bool autoplay;
+         {
+                std::unique_lock<std::mutex> lock{m_mutex};
+                if (!m_autoplay)
+                {
+                // printf("exit thread pre wait\n");
+                return;
+                }
+                if (m_CV.wait_for(lock, m_deltaTime) != std::cv_status::timeout)
+                {
+                printf("autoplay not timed out \n");
+                if (!m_autoplay)
+                {
+                    printf("exit thread post wait\n");
+                    return;
+                }
+                else
+                {
+                    continue;
+                }
+                }
+                autoplay = m_autoplay;
+         }
+         if (autoplay)
+         {
+                REveManager::ChangeGuard ch;
+                NextEvent();
+         }
+         else
+         {
+                return;
+         }
+      }
+   }
+
+   void autoplay(bool x)
+   {
+      std::cout << "Set autoplay " << x << std::endl;
+      static std::mutex autoplay_mutex;
+      std::unique_lock<std::mutex> aplock{autoplay_mutex};
+      {
+         std::unique_lock<std::mutex> lock{m_mutex};
+
+         StampObjProps();
+         m_autoplay = x;
+         if (m_autoplay)
+         {
+                if (m_timerThread)
+                {
+                m_timerThread->join();
+                delete m_timerThread;
+                m_timerThread = nullptr;
+                }
+                NextEvent();
+                m_timerThread = new std::thread{[this]
+                                                { autoplay_scheduler(); }};
+         }
+         else
+         {
+                m_CV.notify_all();
+         }
+      }
+   }
+
+   void playdelay(float x)
+   {
+      printf("playdelay %f\n", x);
+      std::unique_lock<std::mutex> lock{m_mutex};
+      m_deltaTime = std::chrono::milliseconds(int(x));
+      StampObjProps();
+      m_CV.notify_all();
+   }
 };
 
 //==============================================================================
@@ -374,7 +566,6 @@ void createScenesAndViews()
 
    // Geom  ry
    auto b1 = new REveGeoShape("Barrel 1");
-   float dr = 3;
    b1->SetShape(new TGeoTube(r -2 , r+2, z));
    b1->SetMainColor(kCyan);
    eveMng->GetGlobalScene()->AddElement(b1);
@@ -408,7 +599,7 @@ void createScenesAndViews()
       rhoZView->AddScene(pgeoScene);
    }
       // collections
-    auto collections = eveMng->SpawnNewScene("Collections", "Collections");
+   eveMng->SpawnNewScene("Collections", "Collections");
 
    // Table
    if (1) {
@@ -424,37 +615,44 @@ void createScenesAndViews()
 ////////////////////////////////////////////////////
 void evd()
 {
-   VSDProvider* event = g_provider;
+   VSDProvider* prov = g_provider;
    eveMng = REveManager::Create();
+
    createScenesAndViews();
-   auto collectionMng = new CollectionManager(event);
+   auto collectionMng = new CollectionManager(prov);
 
-   auto eventMng = new EventManager(collectionMng, event);
+   auto eventMng = new EventManager(collectionMng, prov);
    eventMng->UpdateTitle();
-   //eventMng->SetName(prov->GetFile()->GetName());
-   eveMng->GetWorld()->AddElement(eventMng);
+   // eventMng->SetName(prov->GetFile()->GetName());
 
+  TString name = prov->m_title;
+  int l = name.Last('/');
+  if (l != kNPOS)
+      name.Remove(0, l + 1);
 
-   auto deviator = std::make_shared<FWSelectionDeviator>();
-   eveMng->GetSelection()->SetDeviator(deviator);
-   eveMng->GetHighlight()->SetDeviator(deviator);
+  eventMng->SetName(name.Data());
+  auto massDialog = new InvMassDialog();
+  eventMng->AddElement(massDialog);
+  eveMng->GetWorld()->AddElement(eventMng);
 
-   for (auto &vsdc : event->m_collections)
-   {
+  auto deviator = std::make_shared<FWSelectionDeviator>();
+  eveMng->GetSelection()->SetDeviator(deviator);
+  eveMng->GetHighlight()->SetDeviator(deviator);
+  for (auto &vsdc : prov->m_collections)
+  {
       printf("vsd collection ====== %s\n", vsdc->m_name.c_str());
       if (vsdc->m_purpose == "EventInfo")
          continue;
       collectionMng->addCollection(vsdc);
    }
-
    eventMng->GotoEvent(0);
 
    std::string locPath = "ui5";
    eveMng->AddLocation("mydir/", locPath);
    eveMng->SetDefaultHtmlPage("file:mydir/eventDisplay.html");
+   ((REveViewer*)(ROOT::Experimental::gEve->GetViewers()->FirstChild()))->SetMandatory(false);
 
    gEnv->SetValue("WebEve.DisableShow", 1);
    // gEnv->SetValue("WebGui.HttpMaxAge", 0);
-   gEnv->SetValue("WebGui.HttpPort", 1093);
    eveMng->Show();
 }

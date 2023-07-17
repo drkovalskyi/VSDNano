@@ -76,35 +76,25 @@
            <Button id="nextEvent" icon="sap-icon://media-play" 
                    press="nextEvent" />
 
-            <Label id="dateLabel" />
-              <!--
-            <Button icon="sap-icon://user-edit" type="Transparent"
-               tooltip="Toggle GED editor" press="toggleGedEditor" enabled="false" />
-            <MenuButton text="File"  enabled="false">
-               <menu>
-                  <Menu itemSelected="onFileMenuAction">
-                     <items>
-                        <MenuItem text="Open" icon="sap-icon://open-folder" />
-                        <MenuItem text="Close canvas" icon="sap-icon://decline" />
-                        <MenuItem text="Save" startsSection="true"
-                           icon="sap-icon://save">
-                           <items>
-                              <MenuItem text="Canvas.png" />
-                              <MenuItem text="Canvas.svg" />
-                              <MenuItem text="Canvas.jpeg" />
-                           </items>
-                        </MenuItem>
-                        <MenuItem text="Save as ..." icon="sap-icon://save" />
-                        <MenuItem text="Interrupt"
-                           startsSection="true" icon="sap-icon://stop" />
-                        <MenuItem text="Quit ROOT" icon="sap-icon://system-exit" />
+            
+        <Label text="AutoPlay:">
+          <layoutData>
+            <OverflowToolbarLayoutData priority="Disappear" shrinkable="true" minWidth="40px" />
+          </layoutData>
+        </Label>       
+        <CheckBox id="autoplayId" class="sapUiNoMarginRight" select="autoplay">
+          <layoutData>
+            <OverflowToolbarLayoutData priority="Low" shrinkable="true" minWidth="40px" />
+          </layoutData>
+        </CheckBox>
 
-                     </items>
-                  </Menu>
-               </menu>
-            </MenuButton>
-            <Button text="Edit" type="Transparent" enabled="false" ></Button>
-            -->
+        <Slider id="playdelayId" value="500" min="0" max="2000" width="6em" change="playdelay" showAdvancedTooltip="true" class="sapUiNoMargin">
+          <layoutData>
+            <OverflowToolbarLayoutData priority="Disappear" shrinkable="true" minWidth="40px" />
+          </layoutData>
+        </Slider>
+
+            <Label id="dateLabel" />
 
         <ToolbarSpacer  />
         <CheckBox id="enableFilter" text="EnableFilter" select="enableFilter">

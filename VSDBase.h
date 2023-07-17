@@ -129,7 +129,7 @@ public:
    std::string m_filter;
    std::vector<VSDBase *> m_list;
 
-   virtual void fill() { printf("not implemented !!!!!!!!!!!!!!!!!! EXIT !!!!\n\n");}
+   virtual void fill() {}
 };
 
 class VSDProvider
@@ -143,6 +143,7 @@ public:
     Long64_t m_eventIdx{0};
     std::vector<VSDCollection *> m_collections;
     nlohmann::json *m_config{nullptr};
+    std::string m_title{"VSDPRovider"};
 
     virtual Long64_t GetNumEvents() { return 0; }
 
@@ -153,7 +154,7 @@ public:
 
     virtual void GotoEvent(int eventIdx)
     {
-        printf("VSDProvider::GotoEvent   start \n");
+        printf("goto   start \n");
         // m_tree->GetEntry(eventIdx);
         m_eventIdx = eventIdx;
 
@@ -162,6 +163,7 @@ public:
         {
             h->m_list.clear();
 
+            // h->fill(*(this->m_data));
             h->fill();
 
             // debug
@@ -184,7 +186,7 @@ public:
             {
                 VSDEventInfo *ei = (VSDEventInfo *)vsdc->m_list[0];
                 m_eventInfo = *ei;
-                printf("...... setting event info %lld \n", m_eventInfo.m_event);
+                // printf("...... setting event info %lld \n", m_eventInfo.m_event);
                 return;
             }
         }
@@ -198,7 +200,9 @@ public:
                 return collection;
         }
         return nullptr;
-    };
-
+    }
 };
+
+
+
 #endif // #ifdef VSDBase

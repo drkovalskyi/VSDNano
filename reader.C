@@ -35,9 +35,9 @@ void reader()
     gROOT->LoadMacro("VSDReader.C");
 
     gROOT->LoadMacro("cms_nano_aod_bootstrap.C");
-    TString cmd = TString::Format("cms_nano_aod_bootstrap((TTree*)%p, (nlohmann::json*)%p, (nlohmann::json*)%p)", tree, &j, &cList);
+    TString cmd = TString::Format("cms_nano_aod_bootstrap((TFile*)%p, (nlohmann::json*)%p, (nlohmann::json*)%p)", file, &j, &cList);
     printf("CMD %s \n", cmd.Data());
     gROOT->ProcessLine(cmd.Data());
-    gROOT->LoadMacro("evd.C");
+    gROOT->LoadMacro("evd.h");
     gROOT->ProcessLine("evd()");
 }
