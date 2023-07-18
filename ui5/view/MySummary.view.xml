@@ -13,7 +13,7 @@
           class="sapUiSizeCompact sapUiTinyMargin">
 	       <headerToolbar>
 				<OverflowToolbar >
-					<Button  id="addCollection"  type="Emphasized"
+					<Button  id="addCollection"  type="Emphasized" enabled="false"
             press="addCollection"
             width="100%"
 						text="Add Collections"

@@ -618,6 +618,13 @@ void evd()
    VSDProvider* prov = g_provider;
    eveMng = REveManager::Create();
 
+   ROOT::Experimental::gEve->GetWebWindow()->SetClientVersion("33.3");
+   std::string locPath = "ui5";
+   eveMng->AddLocation("unidir/", locPath);
+   eveMng->SetDefaultHtmlPage("file:unidir/eventDisplay.html");
+   gEnv->SetValue("WebGui.HttpMaxAge", 3600);
+
+
    createScenesAndViews();
    auto collectionMng = new CollectionManager(prov);
 
@@ -640,19 +647,15 @@ void evd()
   eveMng->GetHighlight()->SetDeviator(deviator);
   for (auto &vsdc : prov->m_collections)
   {
-      printf("vsd collection ====== %s\n", vsdc->m_name.c_str());
+      // printf("vsd collection ====== %s\n", vsdc->m_name.c_str());
       if (vsdc->m_purpose == "EventInfo")
          continue;
       collectionMng->addCollection(vsdc);
    }
    eventMng->GotoEvent(0);
 
-   std::string locPath = "ui5";
-   eveMng->AddLocation("mydir/", locPath);
-   eveMng->SetDefaultHtmlPage("file:mydir/eventDisplay.html");
    ((REveViewer*)(ROOT::Experimental::gEve->GetViewers()->FirstChild()))->SetMandatory(false);
 
    gEnv->SetValue("WebEve.DisableShow", 1);
-   // gEnv->SetValue("WebGui.HttpMaxAge", 0);
    eveMng->Show();
 }

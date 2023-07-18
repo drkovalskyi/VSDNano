@@ -143,11 +143,13 @@ let pthis = this;
       },
 
       invMassDialogRefresh : function()
-      { 
-         let inmd = this.fw2gui.childs[0];
-         if (inmd.w) {
-         let cl = inmd.w.getContent();
-         cl[0].setHtmlText(inmd.fTitle);
+      {
+         if (this.fw2gui) {
+            let inmd = this.fw2gui.childs[0];
+            if (inmd.w) {
+               let cl = inmd.w.getContent();
+               cl[0].setHtmlText(inmd.fTitle);
+            }
          }
       },
 

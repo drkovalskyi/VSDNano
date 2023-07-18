@@ -58,11 +58,11 @@
          <contentMiddle>
 
             <Label id="runLabel" text="Run "  class="sapUiTinyMargin"/>
-            <Input id="runInput" width="7em" class="sapUiTinyMargin"/>
+            <Input id="runInput" width="7em" class="sapUiTinyMargin" enabled="false"/>
             <Label id="lumiLabel" text="Lumi " />
-            <Input id="lumiInput" width="7em"  class="sapUiTinyMargin"/>
+            <Input id="lumiInput" width="7em"  class="sapUiTinyMargin" enabled="false"/>
             <Label id="event" text="Event "/>
-            <Input id="eventInput" width="7em" class="sapUiTinyMargin"/>
+            <Input id="eventInput" width="7em" class="sapUiTinyMargin" enabled="false"/>
                 <FormattedText id="centerTitle" htmlText="Universal Format"/>
          </contentMiddle>
         </Bar>
