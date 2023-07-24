@@ -26,15 +26,16 @@ class NanoProvider : public VSDProvider
       VSDProvider::GotoEvent(eventIdx);
    }
 
+   virtual Long64_t GetNumEvents() { return m_tree->GetEntriesFast(); }
+
    void registerCollection(const std::string &desc, const std::string &vsdClassType, Color_t color = kBlue, std::string filter = "")
    {
       try
       {
          using namespace nlohmann;
-         TString cmd;
+         TString fillFunc = "  virtual void fill() {\n VSDReader &r = *m_data;\n";
          json &j = m_config->at(vsdClassType);
-
-         std::cout << j.dump(4) << "\n";
+         // std::cout << j.dump(4) << "\n";
          std::string numKey;
          try
          {
@@ -48,21 +49,21 @@ class NanoProvider : public VSDProvider
          // single element collection
          if (numKey == "undef")
          {
-            cmd += TString::Format("auto vsdObj = new VSD%s();\n", vsdClassType.c_str());
+            fillFunc += TString::Format("auto vsdObj = new VSD%s();\n", vsdClassType.c_str());
             for (json::iterator it = j.begin(); it != j.end(); ++it)
             {
                if (it.key() == "N")
                   continue;
 
                std::string k = it.key(), v = it.value();
-               cmd += TString::Format("vsdObj->m_%s = r.ZZZ%s;\n", k.c_str(), v.c_str());
+               fillFunc += TString::Format("vsdObj->m_%s = r.%s%s;\n", k.c_str(), desc.c_str(), v.c_str());
             }
-            cmd += "m_list.push_back(vsdObj);\n";
+            fillFunc += "m_list.push_back(vsdObj);\n";
          }
          else // create from array
          {
-            cmd += TString::Format("for (int i = 0; i < r.%sZZZ; ++i) {\n", numKey.c_str());
-            cmd += TString::Format("auto vsdObj = new VSD%s();\n", vsdClassType.c_str());
+            fillFunc += TString::Format("for (int i = 0; i < r.%s%s; ++i) {\n", numKey.c_str(), desc.c_str());
+            fillFunc += TString::Format("auto vsdObj = new VSD%s();\n", vsdClassType.c_str());
 
             for (json::iterator it = j.begin(); it != j.end(); ++it)
             {
@@ -70,35 +71,29 @@ class NanoProvider : public VSDProvider
                   continue;
 
                std::string k = it.key(), v = it.value();
-               cmd += TString::Format("vsdObj->m_%s = r.ZZZ%s[i]; \n", k.c_str(), v.c_str());
+               fillFunc += TString::Format("vsdObj->m_%s = r.%s%s[i]; \n",k.c_str(), desc.c_str(), v.c_str());
             }
-            cmd += "m_list.push_back(vsdObj);\n";
-            cmd += "}\n // end loop through vsd array";
+            fillFunc += "m_list.push_back(vsdObj);\n";
+            fillFunc += "}\n // end loop through vsd array";
          }
-         printf("VSD collection fill body  %s \n ", cmd.Data());
+         fillFunc += "\n}\n"; // end fill body function
+         // printf("VSD collection fill body  %s \n ", fillFunc.Data());
 
          // make sources for class
-         std::string cname = desc;
-         cname += vsdClassType;
-         cname += "Collection";
-         std::stringstream ss;
-         ss << "class " << cname << " : public NanoCollection \n"
-            << "{\n"
-            << "public:\n"
-            << cname << "(const std::string &n, const std::string &p) : NanoCollection(n, p) {}\n"
-            << "  virtual void fill() {\n VSDReader &r = *m_data;"
-            << cmd.Data() << "\n}\n"
-            << "};\n"
-            << "\n"
-            << "g_provider->addCollection(new " << cname << "(\"ZZZ\",\"" << vsdClassType << "\"));\n";
+         TString cname = TString::Format("%s%sCollection", desc.c_str(), vsdClassType.c_str());
+         TString exp = TString::Format("class %s : public NanoCollection { \n", cname.Data());
+         exp += "public:\n";
+         exp += TString::Format("%s(const std::string &n, const std::string &p) : NanoCollection(n, p) {}\n", cname.Data());
+         exp += fillFunc;
+         exp += "};\n\n";
 
-       //  std::cout << ss.str() << "\n\n.....\n";
-         std::string exp = std::regex_replace(ss.str(), std::regex("ZZZ"), desc);
-         std::cout << "Expression to evaluate" << exp << "\n";
-         gROOT->ProcessLine(exp.c_str());
+         exp += TString::Format("g_provider->addCollection(new %s(\"%s\", \"%s\"));\n", cname.Data(), desc.c_str(), vsdClassType.c_str());
+         // std::cout << "Expression to evaluate\n\n" << exp << "\n";
+                   
+         gROOT->ProcessLine(exp.Data());
 
          // config collection
-         NanoCollection *coll = dynamic_cast<NanoCollection*>(RefColl(desc));
+         NanoCollection *coll = dynamic_cast<NanoCollection *>(RefColl(desc));
          coll->m_color = color;
          coll->m_filter = filter;
          coll->m_name = desc;
@@ -138,9 +133,6 @@ void cms_nano_aod_bootstrap(TFile *file, nlohmann::json *mconfig, nlohmann::json
       catch (std::exception &e)
       {
       }
-
-      printf("----------------------------------------------------------\n");
       provider->registerCollection(col["prefix"], col["type"], color, filter);
-      printf("----------------------------------------------------------\n");
    }
 }
