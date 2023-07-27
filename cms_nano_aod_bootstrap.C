@@ -22,24 +22,32 @@ class NanoProvider : public VSDProvider
 
    virtual void GotoEvent(int eventIdx)
    {
+      printf ("foto provier 1\n");
       m_tree->GetEntry(eventIdx);
+      printf ("foto provier 2\n");
       VSDProvider::GotoEvent(eventIdx);
    }
 
    virtual Long64_t GetNumEvents() { return m_tree->GetEntriesFast(); }
 
-   void registerCollection(const std::string &desc, const std::string &vsdClassType, Color_t color = kBlue, std::string filter = "")
+   void registerCollection(nlohmann::json& j, const std::string& name, Color_t color, const std::string& filter)
    {
+      // std::cout << "\n\n\n\nregister collection " << name << " " << j.dump(3) << "\\n\n";
+      std::string purpose = j["purpose"];
+      std::string desc = name;
+      std::string vsdClassType = purpose; // AMT currently the same
+
+      nlohmann::json f = j["fields"];
+      
       try
       {
          using namespace nlohmann;
-         TString fillFunc = "  virtual void fill() {\n VSDReader &r = *m_data;\n";
-         json &j = m_config->at(vsdClassType);
+         TString fillFunc = "  virtual void fill() {\n VSDReader &i = *m_data;\n";
          // std::cout << j.dump(4) << "\n";
-         std::string numKey;
+         std::string numKey = "single";
          try
          {
-            numKey = j["N"];
+            numKey = j["size"];
          }
          catch (std::exception &e)
          {
@@ -47,31 +55,24 @@ class NanoProvider : public VSDProvider
          }
 
          // single element collection
-         if (numKey == "undef")
+         if (numKey == "single")
          {
             fillFunc += TString::Format("auto vsdObj = new VSD%s();\n", vsdClassType.c_str());
-            for (json::iterator it = j.begin(); it != j.end(); ++it)
+            for (json::iterator it = f.begin(); it != f.end(); ++it)
             {
-               if (it.key() == "N")
-                  continue;
-
                std::string k = it.key(), v = it.value();
-               fillFunc += TString::Format("vsdObj->m_%s = r.%s%s;\n", k.c_str(), desc.c_str(), v.c_str());
+               fillFunc += TString::Format("vsdObj->m_%s = %s;\n", k.c_str(), v.c_str());
             }
             fillFunc += "m_list.push_back(vsdObj);\n";
          }
          else // create from array
          {
-            fillFunc += TString::Format("for (int i = 0; i < r.%s%s; ++i) {\n", numKey.c_str(), desc.c_str());
+            fillFunc += TString::Format("for (int a = 0; a < %s; ++a) {\n", numKey.c_str());
             fillFunc += TString::Format("auto vsdObj = new VSD%s();\n", vsdClassType.c_str());
-
-            for (json::iterator it = j.begin(); it != j.end(); ++it)
+            for (json::iterator it = f.begin(); it != f.end(); ++it)
             {
-               if (it.key() == "N")
-                  continue;
-
                std::string k = it.key(), v = it.value();
-               fillFunc += TString::Format("vsdObj->m_%s = r.%s%s[i]; \n",k.c_str(), desc.c_str(), v.c_str());
+               fillFunc += TString::Format("vsdObj->m_%s = %s[a]; \n",k.c_str(), v.c_str());
             }
             fillFunc += "m_list.push_back(vsdObj);\n";
             fillFunc += "}\n // end loop through vsd array";
@@ -85,7 +86,7 @@ class NanoProvider : public VSDProvider
          exp += "public:\n";
          exp += TString::Format("%s(const std::string &n, const std::string &p) : NanoCollection(n, p) {}\n", cname.Data());
          exp += fillFunc;
-         exp += "};\n\n";
+         exp += "};\n";
 
          exp += TString::Format("g_provider->addCollection(new %s(\"%s\", \"%s\"));\n", cname.Data(), desc.c_str(), vsdClassType.c_str());
          // std::cout << "Expression to evaluate\n\n" << exp << "\n";
@@ -106,12 +107,13 @@ class NanoProvider : public VSDProvider
    }
 };
 
-void cms_nano_aod_bootstrap(TFile *file, nlohmann::json *mconfig, nlohmann::json *cList)
+void cms_nano_aod_bootstrap(TFile *file, nlohmann::json *cList)
 {
    auto tree = (TTree *)file->Get("Events");
-   NanoProvider *provider = new NanoProvider(tree, mconfig);
+   NanoProvider *provider = new NanoProvider(tree, cList);
    provider->m_title = file->GetName();
    g_provider = provider;
+
    for (nlohmann::json::iterator it = cList->begin(); it != cList->end(); ++it)
    {
       // optional color
@@ -133,6 +135,14 @@ void cms_nano_aod_bootstrap(TFile *file, nlohmann::json *mconfig, nlohmann::json
       catch (std::exception &e)
       {
       }
-      provider->registerCollection(col["prefix"], col["type"], color, filter);
+
+      try
+      {
+         provider->registerCollection(col, it.key(), color, filter);
+      }
+      catch (std::exception &e)
+      {
+         std::cout << "RegisterCollection caught exception " << e.what() << "\n";
+      }
    }
 }
