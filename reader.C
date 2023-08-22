@@ -2,10 +2,8 @@
 #include "nlohmann/json.hpp"
 void reader()
 { 
-    TFile::SetCacheFileDir(".");
-   // auto file = TFile::Open("http://amraktad.web.cern.ch/amraktad/nano-CMSSW_11_0_0-RelValZTT-mcRun.root");
-    auto file = TFile::Open("nano-CMSSW_11_0_0-RelValZTT-mcRun.root");
-
+std::string opath = gSystem->pwd();
+std::cout  << "orig path ........ " << opath << "\n";
  nlohmann::json j = nlohmann::json::parse(R"(
 {
    "CaloMET": {
@@ -79,21 +77,38 @@ void reader()
    }
 })");
 
-   // setup data access
-   auto tree = (TTree *)file->Get("Events");
-   auto readerSrcFile = TFile::Open("VSDReader.h");
-   if (!readerSrcFile)
-   {
-       printf("Creating class from TTree.h !!!!\n");
-       tree->MakeClass("VSDReader");
-    }
-    gROOT->LoadMacro("VSDReader.C");
+ // setup data access
+ auto file = TFile::Open("nano-CMSSW_11_0_0-RelValZTT-mcRun.root");
+ //gDebug = 1;
+ std::string hash = file->GetUUID().AsString();
+ auto tree = (TTree *)file->Get("Events");
+ std::string readerPath = Form("%s/%s", opath.c_str(), hash.c_str());
+ std::string readerPathMacro = readerPath + "/VSDReader.C";
+ if (gSystem->AccessPathName(readerPathMacro.c_str()))
+ {
+    std::cout << "======================== reader path " << readerPath << "\n";
+    gSystem->mkdir(readerPath.c_str());
+    gSystem->cd(readerPath.c_str());
+    printf("Creating class from TTree.h !!!!\n");
+    tree->MakeClass("VSDReader");
+    gSystem->cd("..");
+ }
+ else {
+   printf("reusing tree create macro \n");
+ }
+// gSystem->AddIncludePath(readerPath.c_str());
+//return;
+ //exit();
+std::cout << "wpppf: " << readerPathMacro << "\n";
+ gROOT->LoadMacro(readerPathMacro.c_str());
+    //std::cout << "return to origpath " << opath << "\n";
+  //  gSystem->cd(opath.c_str());
 
-    gROOT->LoadMacro("cms_nano_aod_bootstrap.C");
-    TString cmd = TString::Format("cms_nano_aod_bootstrap((TFile*)%p, (nlohmann::json*)%p)", file, &j);
-    
-    // printf("CMD %s \n", cmd.Data());
-    gROOT->ProcessLine(cmd.Data());
-    gROOT->LoadMacro("evd.h");
-    gROOT->ProcessLine("evd()");
+ gROOT->LoadMacro("bootstrap.C");
+ TString cmd = TString::Format("bootstrap((TFile*)%p, (nlohmann::json*)%p)", file, &j);
+
+ // printf("CMD %s \n", cmd.Data());
+ gROOT->ProcessLine(cmd.Data());
+ gROOT->LoadMacro("evd.h");
+ gROOT->ProcessLine("evd()");
 }

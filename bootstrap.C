@@ -107,7 +107,7 @@ class NanoProvider : public VSDProvider
    }
 };
 
-void cms_nano_aod_bootstrap(TFile *file, nlohmann::json *cList)
+void bootstrap(TFile *file, nlohmann::json *cList)
 {
    auto tree = (TTree *)file->Get("Events");
    NanoProvider *provider = new NanoProvider(tree, cList);
