@@ -3,6 +3,8 @@
 void reader(const char *dataPath, const char *jsonPath)
 {
    std::string opath = gSystem->pwd();
+
+   // read json config
    std::ifstream ifs(jsonPath);
    nlohmann::json j = nlohmann::json::parse(ifs);
    std::cout << j.dump(4) << "\n";
@@ -29,7 +31,6 @@ void reader(const char *dataPath, const char *jsonPath)
    gROOT->LoadMacro(readerPathMacro.c_str());
    gROOT->LoadMacro("bootstrap.C");
    TString cmd = TString::Format("bootstrap((TFile*)%p, (nlohmann::json*)%p)", file, &j);
-
    // printf("CMD %s \n", cmd.Data());
    gROOT->ProcessLine(cmd.Data());
    gROOT->LoadMacro("evd.h");
