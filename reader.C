@@ -96,14 +96,7 @@ std::cout  << "orig path ........ " << opath << "\n";
  else {
    printf("reusing tree create macro \n");
  }
-// gSystem->AddIncludePath(readerPath.c_str());
-//return;
- //exit();
-std::cout << "wpppf: " << readerPathMacro << "\n";
  gROOT->LoadMacro(readerPathMacro.c_str());
-    //std::cout << "return to origpath " << opath << "\n";
-  //  gSystem->cd(opath.c_str());
-
  gROOT->LoadMacro("bootstrap.C");
  TString cmd = TString::Format("bootstrap((TFile*)%p, (nlohmann::json*)%p)", file, &j);
 

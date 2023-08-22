@@ -22,9 +22,7 @@ class NanoProvider : public VSDProvider
 
    virtual void GotoEvent(int eventIdx)
    {
-      printf ("foto provier 1\n");
       m_tree->GetEntry(eventIdx);
-      printf ("foto provier 2\n");
       VSDProvider::GotoEvent(eventIdx);
    }
 
