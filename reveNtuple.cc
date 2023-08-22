@@ -1,13 +1,39 @@
 
+#include <iostream>
+#include <fstream>
+
+#include "TRint.h"
+#include "TApplication.h"
+#include "TROOT.h"
+#include "TFile.h"
+#include "TSystem.h"
+#include "TTree.h"
 #include "nlohmann/json.hpp"
-void reader(const char *dataPath, const char *jsonPath)
+
+int main(int argc, char *argv[])
 {
+   if (argc < 3)
+   {
+      std::cout << "Need input data file and json file !" << std::endl;
+      return 1;
+   }
+   const char *dummyArgvArray[] = {argv[0]};
+   char **dummyArgv = const_cast<char **>(dummyArgvArray);
+   int dummyArgc = 1;
+
+   auto app = new TRint("reveNtuple", &dummyArgc, dummyArgv);
+   const char* dataPath = argv[1];
+   const char* jsonPath = argv[2];
+
+   ROOT::EnableThreadSafety();
+
+   // save original path
    std::string opath = gSystem->pwd();
 
    // read json config
    std::ifstream ifs(jsonPath);
    nlohmann::json j = nlohmann::json::parse(ifs);
-   std::cout << j.dump(4) << "\n";
+   // std::cout << j.dump(4) << "\n";
 
    // setup data access
    auto file = TFile::Open(dataPath);
@@ -34,4 +60,5 @@ void reader(const char *dataPath, const char *jsonPath)
    gROOT->ProcessLine(cmd.Data());
    gROOT->LoadMacro("evd.h");
    gROOT->ProcessLine("evd()");
+   app->Run();
 }
