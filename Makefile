@@ -9,5 +9,9 @@ test: sample reveNtuple
 reveNtuple: reveNtuple
 	c++ `root-config --cflags` -fPIC  reveNtuple.cc -L`root-config --libdir` -lROOTEve -lROOTWebDisplay -lCore -lMathCore -lRIO -lRint -o reveNtuple
 
+service:
+	c++ `root-config --cflags` -fPIC  service.cc -L`root-config --libdir` -lROOTEve -lROOTWebDisplay -lCore -lRIO -lMathCore -lRint -lNet -o service
+
+
 clean:
 	rm reveNtuple
