@@ -36,6 +36,48 @@ static int USER_TIMEOUT = 144000;
 static int DISCONNECT_TIMEOUT = 600;
 
 namespace REX = ROOT::Experimental;
+//=============================================================================
+// The event display specific
+//=============================================================================
+struct EventDisplayInstance
+{
+   void run(nlohmann::json &req)
+   {
+      std::string opath = gSystem->pwd();
+      std::string jsonPath = req["fwconfig"].get<std::string>();
+      std::cout << "jsonPath " << jsonPath << "\n";
+      jsonPath = "/store/nano.json";
+      std::ifstream ifs(jsonPath);
+      nlohmann::json j = nlohmann::json::parse(ifs);
+      std::string dataPath = req["file"].get<std::string>();
+      dataPath = "/store/nano.root";
+      std::cout << "data path " << dataPath << "\n";
+      auto file = TFile::Open(dataPath.c_str());
+      std::string hash = file->GetUUID().AsString();
+      auto tree = (TTree *)file->Get("Events");
+      std::string readerPath = Form("%s/%s", opath.c_str(), hash.c_str());
+      std::string readerPathMacro = readerPath + "/VSDReader.C";
+      if (gSystem->AccessPathName(readerPathMacro.c_str()))
+      {
+         printf("Creating class from TTree.\n");
+         gSystem->mkdir(readerPath.c_str());
+         gSystem->cd(readerPath.c_str());
+         tree->MakeClass("VSDReader");
+         gSystem->cd("..");
+      }
+      else
+      {
+         printf("reusing tree created class.\n");
+      }
+      gROOT->LoadMacro(readerPathMacro.c_str());
+      gROOT->LoadMacro("bootstrap.C");
+      TString cmd = TString::Format("bootstrap((TFile*)%p, (nlohmann::json*)%p)", file, &j);
+      // printf("CMD %s \n", cmd.Data());
+      gROOT->ProcessLine(cmd.Data());
+      gROOT->LoadMacro("evd.h");
+      gROOT->ProcessLine("evd()");
+   }
+};
 
 //=============================================================================
 // Message Queue stuff
@@ -624,7 +666,8 @@ void revetor()
                dup2(fileno(stderr), 2);
                setlinebuf(stdout);
 
-               makeEventDisplayInstance();
+               EventDisplayInstance evdInstance;
+               evdInstance.run(req);
                // gROOT->LoadMacro("$ROOTSYS/tutorials/eve7/event_demo.C");
                // gROOT->ProcessLine("event_demo()");
 /*
@@ -769,42 +812,6 @@ void next_arg_or_die(lStr_t &args, lStr_i &i, bool allow_single_minus = false)
    i = j;
 }
 
-void makeEventDisplayInstance(nlohman::json& req)
-{
-   std::string opath = gSystem->pwd();
-   std::string jsonPath = req["fwconfig"].get<std::string>();
-   std::cout << "jsonPath " << jsonPath << "\n";
-   jsonPath = "/store/nano.json";
-   std::ifstream ifs(jsonPath);
-   nlohmann::json j = nlohmann::json::parse(ifs);
-   std::string dataPath = req["file"].get<std::string>();
-   dataPath = "/store/nano.root";
-   std::cout << "data path " << dataPath << "\n";
-   auto file = TFile::Open(dataPath.c_str());
-   std::string hash = file->GetUUID().AsString();
-   auto tree = (TTree *)file->Get("Events");
-   std::string readerPath = Form("%s/%s", opath.c_str(), hash.c_str());
-   std::string readerPathMacro = readerPath + "/VSDReader.C";
-   if (gSystem->AccessPathName(readerPathMacro.c_str()))
-   {
-      printf("Creating class from TTree.\n");
-      gSystem->mkdir(readerPath.c_str());
-      gSystem->cd(readerPath.c_str());
-      tree->MakeClass("VSDReader");
-      gSystem->cd("..");
-   }
-   else
-   {
-      printf("reusing tree created class.\n");
-   }
-   gROOT->LoadMacro(readerPathMacro.c_str());
-   gROOT->LoadMacro("bootstrap.C");
-   TString cmd = TString::Format("bootstrap((TFile*)%p, (nlohmann::json*)%p)", file, &j);
-   // printf("CMD %s \n", cmd.Data());
-   gROOT->ProcessLine(cmd.Data());
-   gROOT->LoadMacro("evd.h");
-   gROOT->ProcessLine("evd()");
-}
 
 int main(int argc, char *argv[])
 {
