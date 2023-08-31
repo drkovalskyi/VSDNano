@@ -26,33 +26,33 @@
      </body>
   
      <script type='module'>
-  
-        import { source_dir } from '/jsrootsys/modules/core.mjs';
-        import { connectWebWindow } from '/jsrootsys/modules/webwindow.mjs';
-        import { initEVE } from '/rootui5sys/eve7/eve.mjs';
-  
-        initEVE(source_dir).then(() => connectWebWindow({
-           // socket_kind: "file",  // used for offline
-           ui5: true,
-           //  openui5src: "https://openui5.hana.ondemand.com/1.98.0/",
-           openui5libs: "sap.ui.core" // customize openui5 libs
-        })).then(handle => {
+
+      import { source_dir } from './jsrootsys/modules/core.mjs';
+      import { connectWebWindow } from './jsrootsys/modules/webwindow.mjs';
+      import { initEVE } from './rootui5sys/eve7/eve.mjs';
+
+      initEVE(source_dir).then(() => connectWebWindow({
+         ui5: true,
+         openui5libs: "sap.ui.core" // customize openui5 libs
+      })).then(handle => {
          console.log("EVE JSR  source", EVE.JSR.source_dir);
-           sap.ui.loader.config({ paths: { custom: "unidir/" } });
-           sap.ui.require(["sap/ui/core/ComponentContainer"], ComponentContainer => {
-              new ComponentContainer({
-                 name: "custom",
-                 manifest: true,
-                 async: true,
-                 settings: {
-                    componentData: {
-                       conn_handle: handle
-                    }
-                 },
-                 height: "100%"
-              }).placeAt("EveDiv")
-           });
-        });
+
+         sap.ui.loader.config({ paths: { custom: "unidir/" } });
+         
+         sap.ui.require(["sap/ui/core/ComponentContainer"], ComponentContainer => {
+            new ComponentContainer({
+               name: "custom",
+               manifest: true,
+               async: true,
+               settings: {
+                  componentData: {
+                     conn_handle: handle
+                  }
+               },
+               height: "100%"
+            }).placeAt("EveDiv")
+         });
+      });
   
      </script>
   
