@@ -30,7 +30,7 @@
 #include <iostream>
 #include <fstream>
 
-static int SERVICE_PORT = 6666;
+static int SERVICE_PORT = 5555;
 static int MAX_SERVERS = 100;
 static int USER_TIMEOUT = 144000;
 static int DISCONNECT_TIMEOUT = 600;
@@ -45,13 +45,13 @@ struct EventDisplayInstance
    {
       std::string opath = gSystem->pwd();
       std::string jsonPath = req["fwconfig"].get<std::string>();
-      std::cout << "jsonPath " << jsonPath << "\n";
-      jsonPath = "/store/nano.json";
+      printf( "jsonPath = %s \n", jsonPath.c_str());
+      //jsonPath = "/home/viz/universal-format/VSDNano/examples/nano.json";
       std::ifstream ifs(jsonPath);
       nlohmann::json j = nlohmann::json::parse(ifs);
       std::string dataPath = req["file"].get<std::string>();
-      dataPath = "/store/nano.root";
-      std::cout << "data path " << dataPath << "\n";
+      printf( "dataPath = %s \n", dataPath.c_str());
+      // dataPath = "/home/viz/universal-format/VSDNano/nano-CMSSW_11_0_0-RelValZTT-mcRun.root";
       auto file = TFile::Open(dataPath.c_str());
       std::string hash = file->GetUUID().AsString();
       auto tree = (TTree *)file->Get("Events");
@@ -566,9 +566,7 @@ void revetor()
             }
 
             ++N_tot_children;
-
-            std::string logdir = "/tmp";
-            /*
+            
             std::string logdir = req["logdir"].get<std::string>();
             std::string logdirurl = req["logdirurl"].get<std::string>();
             {
@@ -583,7 +581,7 @@ void revetor()
                   continue;
                }
             }
-
+/*
             std::string fwconfig = req["fwconfig"].get<std::string>();
             std::cout << "fwconfig is set !!!! \n";
             std::string fwconfigdir = req["fwconfigdir"].get<std::string>();
@@ -656,6 +654,8 @@ void revetor()
                         global_child_pid);
                logdir += "/";
                logdir += log_fname;
+
+               std::cout << "AMT debug ....logdir = " <<  logdir << "\n";
 
                if ((stdout = fopen(logdir.c_str(), "w")) == nullptr)
                {
