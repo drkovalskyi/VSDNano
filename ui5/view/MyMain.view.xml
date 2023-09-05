@@ -103,7 +103,7 @@
           </layoutData>
         </CheckBox>
 
-        <Button id="eventFilter" text="FilterDialog" press="eventFilterShow">
+        <Button id="eventFilter" text="FilterDialog-Test" press="eventFilterShow">
           <layoutData>
             <OverflowToolbarLayoutData priority="High" shrinkable="true" minWidth="40px" />
           </layoutData>

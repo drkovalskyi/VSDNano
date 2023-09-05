@@ -471,7 +471,7 @@ print("<hr />");
 
     print "<br>\n";
     print $q->submit('Action', "RunTest Example");
-    print " with example configuration /eos/amraktad... ";
+    print " with the example configuration <a href=https://raw.githubusercontent.com/alja/VSDNano/main/examples/nano.json>example.json</a> ";
   print $q->end_form();
 }
 

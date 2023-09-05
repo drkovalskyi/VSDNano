@@ -618,11 +618,11 @@ void evd()
    VSDProvider* prov = g_provider;
    eveMng = REveManager::Create();
 
-   ROOT::Experimental::gEve->GetWebWindow()->SetClientVersion("33.3");
-   std::string locPath = "ui5";
-   eveMng->AddLocation("unidir/", locPath);
-   eveMng->SetDefaultHtmlPage("file:unidir/eventDisplay.html");
-   gEnv->SetValue("WebGui.HttpMaxAge", 3600);
+//  ROOT::Experimental::gEve->GetWebWindow()->SetClientVersion("33.3");
+    std::string locPath = "ui5";
+    eveMng->AddLocation("unidir/", locPath);
+    eveMng->SetDefaultHtmlPage("file:unidir/eventDisplay.html");
+//  gEnv->SetValue("WebGui.HttpMaxAge", 3600);
 
 
    createScenesAndViews();
