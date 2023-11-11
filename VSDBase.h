@@ -8,7 +8,7 @@
 
 
 class VSDProvider;
-VSDProvider *g_provider = nullptr;
+// VSDProvider *g_provider = nullptr;
 
 /////////////////////////////////////////////////
 class VSDBase
@@ -28,8 +28,9 @@ public:
    float m_z;
 
 public:
-   // VSDVertex(){}
-   // VSDVertex(float ix, float iy, float iz) { m_x= ix; m_y = iy; m_z = iz;}
+   VSDVertex() = default;
+   VSDVertex& operator=(const VSDVertex&) = default;
+   VSDVertex(float ix, float iy, float iz) { m_x= ix; m_y = iy; m_z = iz;}
    virtual ~VSDVertex(){}
    void dump() { printf("VSDVertex x:%.2f, y:%.2f, z:%.2f \n", m_x, m_y,m_z); }
 
@@ -45,17 +46,21 @@ class VSDCandidate : public VSDBase
 public:
    // ROOT::Math::Polar3DPoint momentum;
    float m_eta{0.f}; float m_phi{0.f}; float m_pt{0.f};
-   float m_charge{0};
+   int m_charge{0};
 
 public:
+   VSDCandidate() = default;
+   VSDCandidate& operator=(const VSDCandidate&) = default;
+   VSDCandidate(float ipt, float ieta, float iphi, int charge = 0) :
+      m_pt(ipt), m_eta(ieta), m_phi(iphi), m_charge(charge) {}
    virtual ~VSDCandidate(){}
-   // VSDCandidate(float ipt, float ieta, float iphi, int charge = 0) :m_pt(ipt), m_eta(ieta), m_phi(iphi), m_charge(charge){}
+
    float phi() const { return m_phi; }
    float eta() const { return m_eta; }
    float pt() const { return m_pt; }
    float charge() const { return m_charge; }
 
-   void dump() { printf("VSDCanidate pt = %f, charge = %f \n", m_pt, m_charge); }
+   void dump() { printf("VSDCanidate pt = %f, charge = %d \n", m_pt, m_charge); }
 };
 
 /////////////////////////////////////////////////
@@ -67,11 +72,14 @@ public:
    float m_coneR{0.2f}; // cone radius in eta phi space
 
 public:
+   VSDJet() = default;
+   VSDJet& operator=(const VSDJet&) = default;
+   VSDJet(float pt, float eta, float phi, int charge, float had_fraction, float coneR = 0.2) :
+      VSDCandidate(pt, eta, phi, charge), m_hadFraction(had_fraction), m_coneR(coneR) {}
+   virtual ~VSDJet(){}
+
    float hadFraction() const { return m_hadFraction; }
    float coneR() const { return m_coneR; }
-
-   virtual ~VSDJet(){}
-   //VSDJet(float pt, float eta, float phi, float had_fraction, float coneR = 0.2) : VSDCandidate(pt, eta, phi), m_hadFraction(had_fraction), m_coneR(coneR) {}
 
    using VSDBase::dump;
    void dump() { printf("VSDJet pt:%.2f, eta:%.2f, phi:%.2f / had_frac: %.2f\n", m_pt, m_eta, m_phi, m_hadFraction); }
