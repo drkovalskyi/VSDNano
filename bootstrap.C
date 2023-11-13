@@ -1,29 +1,29 @@
-#include "VSDBase.h"
+#include "VsdBase.h"
 #include "nlohmann/json.hpp"
 
-class NanoCollection: public VSDCollection
+class NanoCollection: public VsdCollection
 { public:
-  NanoCollection(const std::string& n,const std::string& p) : VSDCollection(n,p) {}
-   VSDReader* m_data{nullptr};
+  NanoCollection(const std::string& n,const std::string& p) : VsdCollection(n,p) {}
+   VsdReader* m_data{nullptr};
 };
 
-class NanoProvider : public VSDProvider
+class NanoProvider : public VsdProvider
 {
    public:
    TTree *m_tree{nullptr};
 
-   VSDReader* m_data{nullptr};
+   VsdReader* m_data{nullptr};
 
    NanoProvider(TTree *t, nlohmann::json* cfg) :  m_tree(t)
    {
       m_config = cfg;
-      m_data = new VSDReader(t);
+      m_data = new VsdReader(t);
    }
 
    virtual void GotoEvent(int eventIdx)
    {
       m_tree->GetEntry(eventIdx);
-      VSDProvider::GotoEvent(eventIdx);
+      VsdProvider::GotoEvent(eventIdx);
    }
 
    virtual Long64_t GetNumEvents() { return m_tree->GetEntriesFast(); }
@@ -40,7 +40,7 @@ class NanoProvider : public VSDProvider
       try
       {
          using namespace nlohmann;
-         TString fillFunc = "  virtual void fill() {\n VSDReader &i = *m_data;\n";
+         TString fillFunc = "  virtual void fill() {\n VsdReader &i = *m_data;\n";
          // std::cout << j.dump(4) << "\n";
          std::string numKey = "single";
          try

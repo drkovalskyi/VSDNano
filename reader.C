@@ -14,13 +14,13 @@ void reader(const char *dataPath, const char *jsonPath)
    std::string hash = file->GetUUID().AsString();
    auto tree = (TTree *)file->Get("Events");
    std::string readerPath = Form("%s/%s", opath.c_str(), hash.c_str());
-   std::string readerPathMacro = readerPath + "/VSDReader.C";
+   std::string readerPathMacro = readerPath + "/VsdReader.C";
    if (gSystem->AccessPathName(readerPathMacro.c_str()))
    {
       printf("Creating class from TTree.\n");
       gSystem->mkdir(readerPath.c_str());
       gSystem->cd(readerPath.c_str());
-      tree->MakeClass("VSDReader");
+      tree->MakeClass("VsdReader");
       gSystem->cd("..");
    }
    else

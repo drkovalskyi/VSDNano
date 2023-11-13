@@ -1,4 +1,4 @@
-#include "VSDBase.h"
+#include "VsdBase.h"
 
 #include "TROOT.h"
 #include "ROOT/REveDataCollection.hxx"
@@ -113,12 +113,12 @@ void addRhoZEnergyProjection(REveDataProxyBuilderBase *pb, REveElement *containe
 
 
 
-class VertexProxyBuilder : public REveDataSimpleProxyBuilderTemplate<VSDVertex>
+class VertexProxyBuilder : public REveDataSimpleProxyBuilderTemplate<VsdVertex>
 {
 public:
 
-   using REveDataSimpleProxyBuilderTemplate<VSDVertex>::BuildItem;
-   virtual void BuildItem(const VSDVertex &iData, int iIndex, REveElement *iItemHolder, const REveViewContext *vc) override
+   using REveDataSimpleProxyBuilderTemplate<VsdVertex>::BuildItem;
+   virtual void BuildItem(const VsdVertex &iData, int iIndex, REveElement *iItemHolder, const REveViewContext *vc) override
    {
     /*
       reco::Vertex::Error e = iData.error();
@@ -209,13 +209,13 @@ public:
 
 //====================================================================================
 
-class METProxyBuilder : public REveDataSimpleProxyBuilderTemplate<VSDMET>
+class METProxyBuilder : public REveDataSimpleProxyBuilderTemplate<VsdMET>
 {
 public:
    virtual bool HaveSingleProduct() const override { return false; }
 
-   using REveDataSimpleProxyBuilderTemplate<VSDMET>::BuildItemViewType;
-   virtual void BuildItemViewType(const VSDMET &met, int /*idx*/, ROOT::Experimental::REveElement *iItemHolder,
+   using REveDataSimpleProxyBuilderTemplate<VsdMET>::BuildItemViewType;
+   virtual void BuildItemViewType(const VsdMET &met, int /*idx*/, ROOT::Experimental::REveElement *iItemHolder,
                                   const std::string &viewType, const REveViewContext *context) override
    {
       using namespace TMath;
@@ -300,12 +300,12 @@ public:
 
 //====================================================================================
 
-class CandidateProxyBuilder : public REveDataSimpleProxyBuilderTemplate<VSDCandidate>
+class CandidateProxyBuilder : public REveDataSimpleProxyBuilderTemplate<VsdCandidate>
 {
-   using REveDataSimpleProxyBuilderTemplate<VSDCandidate>::BuildItem;
-   void BuildItem(const VSDCandidate &el, int /*idx*/, REveElement *iItemHolder, const REveViewContext *context) override
+   using REveDataSimpleProxyBuilderTemplate<VsdCandidate>::BuildItem;
+   void BuildItem(const VsdCandidate &el, int /*idx*/, REveElement *iItemHolder, const REveViewContext *context) override
    {
-      VSDCandidate &cand = (VSDCandidate &)(el); // amt need a const
+      VsdCandidate &cand = (VsdCandidate &)(el); // amt need a const
       // int pdg = 11 * cand.charge();
 
       float theta = EtaToTheta(cand.eta());
@@ -330,7 +330,7 @@ class CandidateProxyBuilder : public REveDataSimpleProxyBuilderTemplate<VSDCandi
 
 //====================================================================================
 
-class MuonProxyBuilder : public REveDataSimpleProxyBuilderTemplate<VSDMuon>
+class MuonProxyBuilder : public REveDataSimpleProxyBuilderTemplate<VsdMuon>
 {
 private:
    REveTrackPropagator *muonPropagator_g = nullptr;
@@ -349,8 +349,8 @@ public:
       muonPropagator_g->IncRefCount();
    }
 
-   using REveDataSimpleProxyBuilderTemplate<VSDMuon>::BuildItem;
-   void BuildItem(const VSDMuon &muon, int /*idx*/, REveElement *iItemHolder, const REveViewContext *context) override
+   using REveDataSimpleProxyBuilderTemplate<VsdMuon>::BuildItem;
+   void BuildItem(const VsdMuon &muon, int /*idx*/, REveElement *iItemHolder, const REveViewContext *context) override
    {
       initMuonPropagator();
       float theta = EtaToTheta(muon.eta());
@@ -373,7 +373,7 @@ public:
    }
 };
 //====================================================================================
-class JetProxyBuilder : public REveDataSimpleProxyBuilderTemplate<VSDJet>
+class JetProxyBuilder : public REveDataSimpleProxyBuilderTemplate<VsdJet>
 {
    struct Cell
    {
@@ -514,8 +514,8 @@ class JetProxyBuilder : public REveDataSimpleProxyBuilderTemplate<VSDJet>
 
    } // end makeEndCapCell
 
-   using REveDataSimpleProxyBuilderTemplate<VSDJet>::BuildItemViewType;
-   void BuildItemViewType(const VSDJet &dj, int idx, REveElement *iItemHolder,
+   using REveDataSimpleProxyBuilderTemplate<VsdJet>::BuildItemViewType;
+   void BuildItemViewType(const VsdJet &dj, int idx, REveElement *iItemHolder,
                           const std::string &viewType, const REveViewContext *context) override
    {
       auto jet = new REveJetCone();

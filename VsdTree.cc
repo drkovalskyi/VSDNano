@@ -4,10 +4,10 @@
 
 //==============================================================
 
-VsdCollectionBase::VsdCollectionBase(VsdTree *vsd_tree, std::string_view name, std::string_view type, std::string_view ctype) :
+VsdBranchBase::VsdBranchBase(VsdTree *vsd_tree, std::string_view name, std::string_view type, std::string_view ctype) :
   m_name(name), m_type(type), m_collection_type(ctype)
 {
-  printf("VsdCollectionBase registered: %s, %s, %s\n", m_name.c_str(), m_type.c_str(), m_collection_type.c_str());
+  printf("VsdBranchBase registered: %s, %s, %s\n", m_name.c_str(), m_type.c_str(), m_collection_type.c_str());
   vsd_tree->register_supported_collection(m_name, this);  
 }
 
@@ -84,7 +84,7 @@ void VsdTree::goto_event(long long ev) {
 
 // === Common functions ===
 
-void VsdTree::register_supported_collection(const std::string& cn, VsdCollectionBase *cbptr) {
+void VsdTree::register_supported_collection(const std::string& cn, VsdBranchBase *cbptr) {
   m_supported_vector.push_back(cbptr);
   m_supported_map.insert(std::make_pair(cn, cbptr));
 }

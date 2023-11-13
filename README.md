@@ -1,5 +1,5 @@
-# VSDNano
-This project makes visualization of ntuples with the ROOT REve module. It contains a Makefile that builds reveNtuple binary that takes an argument for data source and json to configure mapping between Tree auto generated class and REve VSD structures defined in [VSDBase.h](VSDBase.h). After bould the one can run the event display with command.
+# VsdNano
+This project makes visualization of ntuples with the ROOT REve module. It contains a Makefile that builds reveNtuple binary that takes an argument for data source and json to configure mapping between Tree auto generated class and REve VSD structures defined in [VsdBase.h](VsdBase.h). After bould the one can run the event display with command.
 ```
 ./reveNutple <data.root> <config.sjon>
 ```

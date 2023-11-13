@@ -46,23 +46,23 @@ struct EventDisplayInstance
       std::string opath = gSystem->pwd();
       std::string jsonPath = req["fwconfig"].get<std::string>();
       printf( "jsonPath = %s \n", jsonPath.c_str());
-      //jsonPath = "/home/viz/universal-format/VSDNano/examples/nano.json";
+      //jsonPath = "/home/viz/universal-format/VsdNano/examples/nano.json";
       std::ifstream ifs(jsonPath);
       nlohmann::json j = nlohmann::json::parse(ifs);
       std::string dataPath = req["file"].get<std::string>();
       printf( "dataPath = %s \n", dataPath.c_str());
-      // dataPath = "/home/viz/universal-format/VSDNano/nano-CMSSW_11_0_0-RelValZTT-mcRun.root";
+      // dataPath = "/home/viz/universal-format/VsdNano/nano-CMSSW_11_0_0-RelValZTT-mcRun.root";
       auto file = TFile::Open(dataPath.c_str());
       std::string hash = file->GetUUID().AsString();
       auto tree = (TTree *)file->Get("Events");
       std::string readerPath = Form("%s/%s", opath.c_str(), hash.c_str());
-      std::string readerPathMacro = readerPath + "/VSDReader.C";
+      std::string readerPathMacro = readerPath + "/VsdReader.C";
       if (gSystem->AccessPathName(readerPathMacro.c_str()))
       {
          printf("Creating class from TTree.\n");
          gSystem->mkdir(readerPath.c_str());
          gSystem->cd(readerPath.c_str());
-         tree->MakeClass("VSDReader");
+         tree->MakeClass("VsdReader");
          gSystem->cd("..");
       }
       else
@@ -684,13 +684,13 @@ void revetor()
                std::string hash = file->GetUUID().AsString();
                auto tree = (TTree *)file->Get("Events");
                std::string readerPath = Form("%s/%s", opath.c_str(), hash.c_str());
-               std::string readerPathMacro = readerPath + "/VSDReader.C";
+               std::string readerPathMacro = readerPath + "/VsdReader.C";
                if (gSystem->AccessPathName(readerPathMacro.c_str()))
                {
                   printf("Creating class from TTree.\n");
                   gSystem->mkdir(readerPath.c_str());
                   gSystem->cd(readerPath.c_str());
-                  tree->MakeClass("VSDReader");
+                  tree->MakeClass("VsdReader");
                   gSystem->cd("..");
                }
                else

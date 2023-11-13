@@ -1,5 +1,5 @@
-#include "VSDBase.h"
-#include "VSDProxies.h"
+#include "VsdBase.h"
+#include "VsdProxies.h"
 
 #include "ROOT/REveDataCollection.hxx"
 #include "ROOT/REveDataSimpleProxyBuilderTemplate.hxx"
@@ -82,7 +82,7 @@ class InvMassDialog : public REveElement
       addLine("       px          py          pz          pT     | Collection");
       addLine("--------------------------------------------------+--------------");
 
-      TClass *rc_class = TClass::GetClass(typeid(VSDCandidate));
+      TClass *rc_class = TClass::GetClass(typeid(VsdCandidate));
       auto s = ROOT::Experimental::gEve->GetScenes()->FindChild("Collections");
       for (auto &c : s->RefChildren())
       {
@@ -101,7 +101,7 @@ class InvMassDialog : public REveElement
                     void *model_data = const_cast<void *>(coll->GetDataPtr(ss));
                     REveVector v;
 
-                    VSDCandidate *rc = reinterpret_cast<VSDCandidate *>(model_class->DynamicCast(rc_class, model_data));
+                    VsdCandidate *rc = reinterpret_cast<VsdCandidate *>(model_class->DynamicCast(rc_class, model_data));
 
                     float theta = EtaToTheta(rc->eta());
                     float pz = rc->pt() / TMath::Tan(theta);
@@ -121,7 +121,7 @@ class InvMassDialog : public REveElement
                     }
                     else
                     {
-                        line = TString::Format("  -------- not a VSDCandidate --------");
+                        line = TString::Format("  -------- not a VsdCandidate --------");
                     }
                     line += TString::Format("  | %s[%d]", coll->GetCName(), ss);
 
@@ -179,14 +179,14 @@ class InvMassDialog : public REveElement
 class CollectionManager
 {
 private:
-    VSDProvider *m_event{nullptr};
+    VsdProvider *m_event{nullptr};
     REveElement *m_collections{nullptr};
 
     std::vector<REveDataProxyBuilderBase *> m_builders;
 
     bool m_isEventLoading{false}; // don't process model changes when applying filter on new event
 public:
-    CollectionManager(VSDProvider *event) : m_event(event)
+    CollectionManager(VsdProvider *event) : m_event(event)
     {
         m_collections = eveMng->GetScenes()->FindChild("Collections");
     }
@@ -195,7 +195,7 @@ public:
     {
         m_isEventLoading = true;
         rdc->ClearItems();
-        VSDCollection *vsdc = m_event->RefColl(rdc->GetName());
+        VsdCollection *vsdc = m_event->RefColl(rdc->GetName());
         std::string cname = rdc->GetName();
         printf("-------- LoadCurrentEventInCollection %s size %lu\n", rdc->GetCName(), vsdc->m_list.size());
         std::string t = "dummy";
@@ -224,7 +224,7 @@ public:
         }
     }
 
-    REveDataProxyBuilderBase *getProxyBuilderFromVSD(VSDCollection *vsdc)
+    REveDataProxyBuilderBase *getProxyBuilderFromVSD(VsdCollection *vsdc)
     {
         if (vsdc->m_purpose == "Candidate")
             return new CandidateProxyBuilder();
@@ -248,7 +248,7 @@ public:
     }
 
     void
-    addCollection(VSDCollection *vsdc)
+    addCollection(VsdCollection *vsdc)
     {
         REveDataCollection *collection = new REveDataCollection(vsdc->m_name);
         m_collections->AddElement(collection);
@@ -380,7 +380,7 @@ class EventManager : public REveElement
 {
 private:
    CollectionManager    *m_collectionMng{nullptr};
-   VSDProvider          *m_event{nullptr};
+   VsdProvider          *m_event{nullptr};
    std::chrono::duration<double> m_deltaTime{1};
    std::thread *m_timerThread{nullptr};
    std::mutex m_mutex;
@@ -389,7 +389,7 @@ private:
    
 
 public:
-   EventManager(CollectionManager* m, VSDProvider* e):REveElement("EventManager") {m_collectionMng  = m; m_event = e; m_deltaTime = std::chrono::milliseconds(500);}
+   EventManager(CollectionManager* m, VsdProvider* e):REveElement("EventManager") {m_collectionMng  = m; m_event = e; m_deltaTime = std::chrono::milliseconds(500);}
    virtual ~EventManager() {}
 
    virtual void GotoEvent(int id)  
@@ -534,29 +534,29 @@ void createScenesAndViews()
 
    // table specs
    auto tableInfo = new REveTableViewInfo();
-   tableInfo->table("VSDVertex").
+   tableInfo->table("VsdVertex").
       column("x",  1, "i.x()").
       column("y",  1, "i.y()").
       column("z",  1, "i.z()");
 
-   tableInfo->table("VSDCandidate").
+   tableInfo->table("VsdCandidate").
       column("pt",  1, "i.pt()").
       column("eta", 3, "i.eta()").
       column("phi", 3, "i.phi()").
       column("charge", 3, "i.charge()");
 
-   tableInfo->table("VSDElectron").
+   tableInfo->table("VsdElectron").
       column("pt",  1, "i.pt()").
       column("eta", 3, "i.eta()").
       column("phi", 3, "i.phi()").
       column("HoE", 3, "i.hadronicOverEm()");
 
-   tableInfo->table("VSDMET").
+   tableInfo->table("VsdMET").
       column("pt",  1, "i.pt()").
       column("sumEt", 3, "i.sumEt()").
       column("phi", 3, "i.phi()");
 
-   tableInfo->table("VSDJet").
+   tableInfo->table("VsdJet").
       column("pt",  1, "i.pt()").
       column("eta", 3, "i.eta()").
       column("phi", 3, "i.phi()").
@@ -615,7 +615,7 @@ void createScenesAndViews()
 ////////////////////////////////////////////////////
 void evd()
 {
-   VSDProvider* prov = g_provider;
+   VsdProvider* prov = g_provider;
    eveMng = REveManager::Create();
 
 //  ROOT::Experimental::gEve->GetWebWindow()->SetClientVersion("33.3");

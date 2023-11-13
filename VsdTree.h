@@ -1,7 +1,7 @@
-#ifndef VSDTree_h
-#define VSDTree_h
+#ifndef VsdTree_h
+#define VsdTree_h
 
-#include "VSDBase.h"
+#include "VsdBase.h"
 #include <functional>
 #include "string"
 #include "set"
@@ -12,9 +12,9 @@ class VsdTree;
 
 // -------------------------------------------------------------
 
-class VsdCollectionBase {
+class VsdBranchBase {
 public:
-  VsdCollectionBase(VsdTree *vsd_tree, std::string_view name, std::string_view type, std::string_view ctype);
+  VsdBranchBase(VsdTree *vsd_tree, std::string_view name, std::string_view type, std::string_view ctype);
 
   virtual void register_branch(TTree *tree) = 0;
   virtual void clear_collection() = 0;
@@ -31,10 +31,10 @@ public:
 // Could have separate sub-classes for maps or other types, now all are vectors.
 
 template<class VSDCLS>
-class VsdCollection : public VsdCollectionBase {
+class VsdBranch : public VsdBranchBase {
 public:
-  VsdCollection(VsdTree *vsd_tree, std::string_view name, std::string_view type, std::string_view ctype) :
-    VsdCollectionBase(vsd_tree, name, type, ctype)
+  VsdBranch(VsdTree *vsd_tree, std::string_view name, std::string_view type, std::string_view ctype) :
+    VsdBranchBase(vsd_tree, name, type, ctype)
   {}
 
   void register_branch(TTree *tree) override { m_branch = tree->Branch(m_name.c_str(), &m_collection); }
@@ -44,9 +44,9 @@ public:
   std::vector<VSDCLS> *m_collection = nullptr;
 };
 
-#define REGISTER_COLLECTION(_type_, _name_) \
+#define REGISTER_BRANCH(_type_, _name_) \
 protected: \
-  VsdCollection<_type_> m_ ## _name_ { this, #_name_, #_type_, "std::vector<" #_type_ ">" }; \
+  VsdBranch<_type_> m_ ## _name_ { this, #_name_, #_type_, "std::vector<" #_type_ ">" }; \
 public: \
   bool has_ ## _name_() const { return m_ ## _name_.m_collection != nullptr; } \
   std::vector<_type_>& _name_() const { return *m_ ## _name_.m_collection; } \
@@ -56,8 +56,8 @@ public: \
 // -------------------------------------------------------------
 
 class VsdTree {
-  friend class VsdCollectionBase;
-  void register_supported_collection(const std::string& cn, VsdCollectionBase *cbptr);
+  friend class VsdBranchBase;
+  void register_supported_collection(const std::string& cn, VsdBranchBase *cbptr);
 
 public:
   // Writing constructor & workflow
@@ -81,21 +81,21 @@ public:
   bool has_collection(const std::string &cn) const;
 
 protected:
-  std::vector<VsdCollectionBase*> m_supported_vector;
-  std::map<std::string, VsdCollectionBase*> m_supported_map;
+  std::vector<VsdBranchBase*> m_supported_vector;
+  std::map<std::string, VsdBranchBase*> m_supported_map;
 
-  std::vector<VsdCollectionBase*> m_active_vector;
-  std::map<std::string, VsdCollectionBase*> m_active_map;
+  std::vector<VsdBranchBase*> m_active_vector;
+  std::map<std::string, VsdBranchBase*> m_active_map;
 
   TTree *m_tree = nullptr;
   long long m_current_event = -1;
 
   // Register supported collections, this has to be AFTER the above vector/map declarations.
-  REGISTER_COLLECTION(VSDVertex, primvs);
-  REGISTER_COLLECTION(VSDCandidate, cands);
-  REGISTER_COLLECTION(VSDJet, jets);
+  REGISTER_BRANCH(VsdVertex, primvs);
+  REGISTER_BRANCH(VsdCandidate, cands);
+  REGISTER_BRANCH(VsdJet, jets);
 };
 
-#undef REGISTER_COLLECTION
+#undef REGISTER_BRANCH
 
 #endif

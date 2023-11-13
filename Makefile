@@ -9,7 +9,7 @@ sample:
 test: sample reveNtuple
 	./reveNtuple nano-CMSSW_11_0_0-RelValZTT-mcRun.root examples/nano.json
 
-reveNtuple: reveNtuple
+reveNtuple: reveNtuple.cc
 	c++ `root-config --cflags` -fPIC  reveNtuple.cc -L`root-config --libdir` -lROOTEve -lROOTWebDisplay -lCore -lMathCore -lRIO -lRint -o reveNtuple
 
 service:
@@ -17,12 +17,12 @@ service:
 
 
 clean:
-	rm reveNtuple
+	rm -f reveNtuple VsdDict.cc VsdDict_rdict.pcm libVsdDict.so mt_read mt_write
 
 ### VsdTree and dicts
 
-VsdDict.cc VsdDict_rdict.pcm &: VSDBase.h Vsd_Linkdef.h
-	rootcling -I. -f VsdDict.cc VSDBase.h Vsd_Linkdef.h
+VsdDict.cc VsdDict_rdict.pcm &: VsdBase.h Vsd_Linkdef.h
+	rootcling -I. -f VsdDict.cc VsdBase.h Vsd_Linkdef.h
 
 libVsdDict.so: VsdDict.cc
 	c++ -shared -fPIC -o libVsdDict.so ${ROOT_CFLAGS} VsdDict.cc

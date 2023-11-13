@@ -1,5 +1,5 @@
-#ifndef VSDBase_h
-#define VSDBase_h
+#ifndef VsdBase_h
+#define VsdBase_h
 
 #include "nlohmann/json.hpp"
 #include "TStyle.h"
@@ -7,19 +7,19 @@
 #include "TTree.h"
 
 
-class VSDProvider;
-// VSDProvider *g_provider = nullptr;
+class VsdProvider;
+// VsdProvider *g_provider = nullptr;
 
 /////////////////////////////////////////////////
-class VSDBase
+class VsdBase
 {
 public:
-virtual ~VSDBase(){}
+virtual ~VsdBase(){}
    virtual void dump() { printf("dump VSD Base class\n"); }
 };
 
 /////////////////////////////////////////////////
-class VSDVertex : public VSDBase
+class VsdVertex : public VsdBase
 {
 public:
    //ROOT::Math::Polar3DPoint location;
@@ -28,11 +28,11 @@ public:
    float m_z;
 
 public:
-   VSDVertex() = default;
-   VSDVertex& operator=(const VSDVertex&) = default;
-   VSDVertex(float ix, float iy, float iz) { m_x= ix; m_y = iy; m_z = iz;}
-   virtual ~VSDVertex(){}
-   void dump() { printf("VSDVertex x:%.2f, y:%.2f, z:%.2f \n", m_x, m_y,m_z); }
+   VsdVertex() = default;
+   VsdVertex& operator=(const VsdVertex&) = default;
+   VsdVertex(float ix, float iy, float iz) { m_x= ix; m_y = iy; m_z = iz;}
+   virtual ~VsdVertex(){}
+   void dump() { printf("VsdVertex x:%.2f, y:%.2f, z:%.2f \n", m_x, m_y,m_z); }
 
    float x() const { return m_x; }
    float y() const { return m_y; }
@@ -40,7 +40,7 @@ public:
 };
 
 /////////////////////////////////////////////////
-class VSDCandidate : public VSDBase
+class VsdCandidate : public VsdBase
 {
 // protected:
 public:
@@ -49,22 +49,22 @@ public:
    int m_charge{0};
 
 public:
-   VSDCandidate() = default;
-   VSDCandidate& operator=(const VSDCandidate&) = default;
-   VSDCandidate(float ipt, float ieta, float iphi, int charge = 0) :
+   VsdCandidate() = default;
+   VsdCandidate& operator=(const VsdCandidate&) = default;
+   VsdCandidate(float ipt, float ieta, float iphi, int charge = 0) :
       m_pt(ipt), m_eta(ieta), m_phi(iphi), m_charge(charge) {}
-   virtual ~VSDCandidate(){}
+   virtual ~VsdCandidate(){}
 
    float phi() const { return m_phi; }
    float eta() const { return m_eta; }
    float pt() const { return m_pt; }
    float charge() const { return m_charge; }
 
-   void dump() { printf("VSDCanidate pt = %f, charge = %d \n", m_pt, m_charge); }
+   void dump() { printf("VsdCanidate pt = %f, charge = %d \n", m_pt, m_charge); }
 };
 
 /////////////////////////////////////////////////
-class VSDJet : public VSDCandidate
+class VsdJet : public VsdCandidate
 {
 // private:
 public:
@@ -72,47 +72,47 @@ public:
    float m_coneR{0.2f}; // cone radius in eta phi space
 
 public:
-   VSDJet() = default;
-   VSDJet& operator=(const VSDJet&) = default;
-   VSDJet(float pt, float eta, float phi, int charge, float had_fraction, float coneR = 0.2) :
-      VSDCandidate(pt, eta, phi, charge), m_hadFraction(had_fraction), m_coneR(coneR) {}
-   virtual ~VSDJet(){}
+   VsdJet() = default;
+   VsdJet& operator=(const VsdJet&) = default;
+   VsdJet(float pt, float eta, float phi, int charge, float had_fraction, float coneR = 0.2) :
+      VsdCandidate(pt, eta, phi, charge), m_hadFraction(had_fraction), m_coneR(coneR) {}
+   virtual ~VsdJet(){}
 
    float hadFraction() const { return m_hadFraction; }
    float coneR() const { return m_coneR; }
 
-   using VSDBase::dump;
-   void dump() { printf("VSDJet pt:%.2f, eta:%.2f, phi:%.2f / had_frac: %.2f\n", m_pt, m_eta, m_phi, m_hadFraction); }
+   using VsdBase::dump;
+   void dump() { printf("VsdJet pt:%.2f, eta:%.2f, phi:%.2f / had_frac: %.2f\n", m_pt, m_eta, m_phi, m_hadFraction); }
 };
 
 
 /////////////////////////////////////////////////
-class VSDMuon : public VSDCandidate
+class VsdMuon : public VsdCandidate
 {
 public:
    bool m_global{false};
 
    float global() const { return m_global; }
 
-   virtual ~VSDMuon(){}
-   // VSDMuon(float pt, float eta, float phi, int charge, bool global) : VSDCandidate(pt, eta, phi, charge), m_global(global) {}
+   virtual ~VsdMuon(){}
+   // VsdMuon(float pt, float eta, float phi, int charge, bool global) : VsdCandidate(pt, eta, phi, charge), m_global(global) {}
 };
 
 ////////////////////////////////////////////////
-class VSDMET : public VSDCandidate
+class VsdMET : public VsdCandidate
 {
 public:
   float m_sumEt{0.f};
 public:
-   // VSDMET(float pt, float eta, float phi, float sumEt) :  VSDCandidate(pt, eta, phi), m_sumEt(sumEt) {}
-   virtual ~VSDMET(){}
+   // VsdMET(float pt, float eta, float phi, float sumEt) :  VsdCandidate(pt, eta, phi), m_sumEt(sumEt) {}
+   virtual ~VsdMET(){}
 
    float sumEt() { return m_sumEt; }
-   void dump() { printf("VSDMET: phi: 2f, sumEt:%.2f / pt: %.2f\n", m_phi, m_sumEt); }
+   void dump() { printf("VsdMET: phi: 2f, sumEt:%.2f / pt: %.2f\n", m_phi, m_sumEt); }
 };
 
 ////////////////////////////////////////////////
-struct VSDEventInfo : public VSDBase
+struct VsdEventInfo : public VsdBase
 {
    uint m_run{99};
    uint m_lumi{99};
@@ -122,40 +122,40 @@ struct VSDEventInfo : public VSDBase
 // Event structs
 /////////////////////////////////////////////////
 
-//typedef std::vector<VSDBase *> VSDCollection;
+//typedef std::vector<VsdBase *> VsdCollection;
 
-class VSDCollection
+class VsdCollection
 {
 public:
-   VSDCollection(const std::string &n, const std::string &p, Color_t c = kBlue, std::string f = "") : m_name(n), m_purpose(p), m_color(c), m_filter(f) {}
+   VsdCollection(const std::string &n, const std::string &p, Color_t c = kBlue, std::string f = "") : m_name(n), m_purpose(p), m_color(c), m_filter(f) {}
 
-   VSDCollection() {}
-   virtual ~VSDCollection() {}
+   VsdCollection() {}
+   virtual ~VsdCollection() {}
    std::string m_name;
    std::string m_purpose;
    Color_t m_color{kBlue};
    std::string m_filter;
-   std::vector<VSDBase *> m_list;
+   std::vector<VsdBase *> m_list;
 
    virtual void fill() {}
 };
 
-class VSDProvider
+class VsdProvider
 {
 public:
 
-    virtual ~VSDProvider(){}
+    virtual ~VsdProvider(){}
 
-    VSDEventInfo m_eventInfo;
-    //  VSDReader* m_data{nullptr};
+    VsdEventInfo m_eventInfo;
+    //  VsdReader* m_data{nullptr};
     Long64_t m_eventIdx{0};
-    std::vector<VSDCollection *> m_collections;
+    std::vector<VsdCollection *> m_collections;
     nlohmann::json *m_config{nullptr};
-    std::string m_title{"VSDPRovider"};
+    std::string m_title{"VsdPRovider"};
 
     virtual Long64_t GetNumEvents() { return 0; }
 
-    void addCollection(VSDCollection *h)
+    void addCollection(VsdCollection *h)
     {
         m_collections.push_back(h);
     }
@@ -192,7 +192,7 @@ public:
         {
             if (vsdc->m_purpose == "EventInfo")
             {
-                VSDEventInfo *ei = (VSDEventInfo *)vsdc->m_list[0];
+                VsdEventInfo *ei = (VsdEventInfo *)vsdc->m_list[0];
                 m_eventInfo = *ei;
                 // printf("...... setting event info %lld \n", m_eventInfo.m_event);
                 return;
@@ -200,7 +200,7 @@ public:
         }
     }
 
-    VSDCollection *RefColl(const std::string &name)
+    VsdCollection *RefColl(const std::string &name)
     {
         for (auto collection : m_collections)
         {
@@ -211,6 +211,4 @@ public:
     }
 };
 
-
-
-#endif // #ifdef VSDBase
+#endif // #ifdef VsdBase
