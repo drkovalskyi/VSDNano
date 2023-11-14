@@ -55,7 +55,7 @@ class NanoProvider : public VsdProvider
          // single element collection
          if (numKey == "single")
          {
-            fillFunc += TString::Format("auto vsdObj = new VSD%s();\n", vsdClassType.c_str());
+            fillFunc += TString::Format("auto vsdObj = new Vsd%s();\n", vsdClassType.c_str());
             for (json::iterator it = f.begin(); it != f.end(); ++it)
             {
                std::string k = it.key(), v = it.value();
@@ -66,7 +66,7 @@ class NanoProvider : public VsdProvider
          else // create from array
          {
             fillFunc += TString::Format("for (int a = 0; a < %s; ++a) {\n", numKey.c_str());
-            fillFunc += TString::Format("auto vsdObj = new VSD%s();\n", vsdClassType.c_str());
+            fillFunc += TString::Format("auto vsdObj = new Vsd%s();\n", vsdClassType.c_str());
             for (json::iterator it = f.begin(); it != f.end(); ++it)
             {
                std::string k = it.key(), v = it.value();
@@ -87,7 +87,7 @@ class NanoProvider : public VsdProvider
          exp += "};\n";
 
          exp += TString::Format("g_provider->addCollection(new %s(\"%s\", \"%s\"));\n", cname.Data(), desc.c_str(), vsdClassType.c_str());
-         // std::cout << "Expression to evaluate\n\n" << exp << "\n";
+         std::cout << "Expression to evaluate\n\n" << exp << "\n";
                    
          gROOT->ProcessLine(exp.Data());
 
