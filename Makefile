@@ -17,7 +17,7 @@ service:
 
 
 clean:
-	rm -f reveNtuple VsdDict.cc VsdDict_rdict.pcm libVsdDict.so mt_read mt_write
+	rm -f reveNtuple VsdDict.cc VsdDict_rdict.pcm libVsdDict.so mt_read mt_write libVsdDictAMT.so
 
 ### VsdTree and dicts
 
@@ -26,6 +26,9 @@ VsdDict.cc VsdDict_rdict.pcm &: VsdBase.h Vsd_Linkdef.h
 
 libVsdDict.so: VsdDict.cc
 	c++ -shared -fPIC -o libVsdDict.so ${ROOT_CFLAGS} VsdDict.cc
+
+libVsdDictAMT.so: VsdDict.cc
+	c++ -shared -fPIC -o libVsdDictAMT.so ${ROOT_CFLAGS} VsdDict.cc VsdTree.cc
 
 mt_read: VsdTree.h VsdTree.cc VsdDict.cc
 	c++ -DSTANDALONE_READ_TEST ${ROOT_CFLAGS} -g -O0 -std=c++1z `root-config --libs` -o $@ VsdTree.cc VsdDict.cc
