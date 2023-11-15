@@ -13,3 +13,12 @@
 #pragma link C++ class VsdJet+;
 #pragma link C++ class std::vector<VsdJet>+;
 
+#pragma link C++ class VsdMET+;
+#pragma link C++ class std::vector<VsdMET>+;
+
+#pragma link C++ class VsdMuon+;
+#pragma link C++ class std::vector<VsdMuon>+;
+
+#pragma link C++ class VsdEventInfo+;
+#pragma link C++ class std::vector<VsdEventInfo>+;
+

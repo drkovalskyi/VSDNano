@@ -98,11 +98,13 @@ public:
 /////////////////////////////////////////////////
 class VsdMuon : public VsdCandidate
 {
-public:
    bool m_global{false};
-
+public:
    float global() const { return m_global; }
+   void setGlobal(bool x) { m_global = x; }
 
+   VsdMuon() = default;
+   VsdMuon& operator=(const VsdMuon&) = default;
    virtual ~VsdMuon(){}
    VsdMuon(float pt, float eta, float phi, int charge, bool global) : VsdCandidate(pt, eta, phi, charge), m_global(global) {}
 };
