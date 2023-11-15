@@ -37,6 +37,10 @@ public:
    float x() const { return m_x; }
    float y() const { return m_y; }
    float z() const { return m_z; }
+
+   void setX(float x) {m_x = x;}
+   void setY(float x) {m_y = x;}
+   void setZ(float x) {m_z = x;}
 };
 
 /////////////////////////////////////////////////
@@ -59,6 +63,11 @@ public:
    float eta() const { return m_eta; }
    float pt() const { return m_pt; }
    float charge() const { return m_charge; }
+
+   void setPt(float x) { m_pt = x;}
+   void setEta(float x) { m_eta = x;}
+   void setPhi(float x) { m_phi = x;}
+   void setCharge(float x) { m_charge = x;}
 
    void dump() { printf("VsdCanidate pt = %f, charge = %d \n", m_pt, m_charge); }
 };
@@ -95,7 +104,7 @@ public:
    float global() const { return m_global; }
 
    virtual ~VsdMuon(){}
-   // VsdMuon(float pt, float eta, float phi, int charge, bool global) : VsdCandidate(pt, eta, phi, charge), m_global(global) {}
+   VsdMuon(float pt, float eta, float phi, int charge, bool global) : VsdCandidate(pt, eta, phi, charge), m_global(global) {}
 };
 
 ////////////////////////////////////////////////
@@ -104,19 +113,31 @@ class VsdMET : public VsdCandidate
 public:
   float m_sumEt{0.f};
 public:
-   // VsdMET(float pt, float eta, float phi, float sumEt) :  VsdCandidate(pt, eta, phi), m_sumEt(sumEt) {}
+   VsdMET() = default;
+   VsdMET& operator=(const VsdMET&) = default;
+   VsdMET(float pt, float eta, float phi, float sumEt) :  VsdCandidate(pt, eta, phi), m_sumEt(sumEt) {}
    virtual ~VsdMET(){}
 
    float sumEt() { return m_sumEt; }
+   void setSumEt(float x) { m_sumEt = x;}
    void dump() { printf("VsdMET: phi: 2f, sumEt:%.2f / pt: %.2f\n", m_phi, m_sumEt); }
 };
 
 ////////////////////////////////////////////////
-struct VsdEventInfo : public VsdBase
+class VsdEventInfo : public VsdBase
 {
    uint m_run{99};
    uint m_lumi{99};
    Long64_t m_event{99};
+
+public:
+   VsdEventInfo() = default;
+   VsdEventInfo& operator=(const VsdEventInfo&) = default;
+
+  VsdEventInfo(uint r, uint l, long e) {m_run = r; m_lumi=l; m_event=e; }
+  uint run() {return m_run;}
+  uint lumi() {return m_lumi;}
+  Long64_t event() {return m_event;}
 };
 /////////////////////////////////////////////////
 // Event structs
