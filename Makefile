@@ -35,3 +35,6 @@ mt_read: VsdTree.h VsdTree.cc VsdDict.cc
 
 mt_write: VsdTree.h VsdTree.cc VsdDict.cc
 	c++ -DSTANDALONE_WRITE_TEST ${ROOT_CFLAGS} -g -O0 -std=c++1z `root-config --libs` -o $@ VsdTree.cc VsdDict.cc
+
+nano_write: libVsdDictAMT.so
+ 	root.exe -e 'gSystem->Load("libVsdDictAMT.so")' rdf.C
