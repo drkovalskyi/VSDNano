@@ -94,6 +94,8 @@ protected:
   REGISTER_BRANCH(VsdVertex, primvs);
   REGISTER_BRANCH(VsdCandidate, cands);
   REGISTER_BRANCH(VsdJet, jets);
+  REGISTER_BRANCH(VsdMET, cmets);
+  REGISTER_BRANCH(VsdEventInfo, infos);
 };
 
 #undef REGISTER_BRANCH
