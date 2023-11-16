@@ -122,6 +122,8 @@ public:
 
    float sumEt() { return m_sumEt; }
    void setSumEt(float x) { m_sumEt = x;}
+
+   using VsdBase::dump;
    void dump() { printf("VsdMET: phi: 2f, sumEt:%.2f / pt: %.2f\n", m_phi, m_sumEt); }
 };
 
@@ -140,6 +142,9 @@ public:
   uint run() {return m_run;}
   uint lumi() {return m_lumi;}
   Long64_t event() {return m_event;}
+
+   using VsdBase::dump;
+  void dump() { printf("run %d lumi %d event %lld \n", m_run, m_lumi, m_event);}
 };
 /////////////////////////////////////////////////
 // Event structs
@@ -156,6 +161,7 @@ public:
    virtual ~VsdCollection() {}
    std::string m_name;
    std::string m_purpose;
+   std::string m_type;
    Color_t m_color{kBlue};
    std::string m_filter;
    std::vector<VsdBase *> m_list;
@@ -186,18 +192,13 @@ public:
     virtual void GotoEvent(int eventIdx)
     {
         printf("goto   start \n");
-        // m_tree->GetEntry(eventIdx);
         m_eventIdx = eventIdx;
 
         // fill VSD collections
         for (auto h : m_collections)
         {
             h->m_list.clear();
-
-            // h->fill(*(this->m_data));
             h->fill();
-
-            // debug
             if (0)
             {
                 for (auto e : h->m_list)
