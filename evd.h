@@ -252,9 +252,9 @@ public:
     {
         REveDataCollection *collection = new REveDataCollection(vsdc->m_name);
         m_collections->AddElement(collection);
-        std::string class_name = "VSD" + vsdc->m_name; // !!! This works beacuse it is a root macro
+        std::string class_name = vsdc->m_type;// "VSD" + vsdc->m_name; // !!! This works beacuse it is a root macro
 
-        std::cout << "calss name " << class_name << "\n";
+        // std::cout << "calss name " << class_name << "\n";
 
         TClass* tc  = TClass::GetClass(class_name.c_str());
         if (!tc) {
@@ -403,8 +403,8 @@ public:
   void UpdateTitle()
    {
       printf("======= update title %lld/%lld event ifnfo run=[%d], lumi=[%d], event = [%lld]\n", m_event->m_eventIdx, m_event->GetNumEvents(),
-             m_event->m_eventInfo.m_lumi, m_event->m_eventInfo.m_run, m_event->m_eventInfo.m_event);
-      SetTitle(Form("%lld/%lld/%d/%d/%lld",m_event->m_eventIdx, m_event->GetNumEvents(), m_event->m_eventInfo.m_lumi , m_event->m_eventInfo.m_run,  m_event->m_eventInfo.m_event));
+             m_event->m_eventInfo.lumi(), m_event->m_eventInfo.run(), m_event->m_eventInfo.event());
+      SetTitle(Form("%lld/%lld/%d/%d/%lld",m_event->m_eventIdx, m_event->GetNumEvents(), m_event->m_eventInfo.lumi() , m_event->m_eventInfo.run(),  m_event->m_eventInfo.event()));
       StampObjProps();
    }
    virtual void NextEvent()
