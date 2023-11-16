@@ -136,7 +136,6 @@ void rdf()
    auto vtxHelper = node.Book(VertexHelper(d.GetNSlots()), {"PV_x", "PV_y", "PV_z"});
    auto vtxResult = *vtxHelper;
 
-
    auto eiHelper = node.Book(EIHelper(d.GetNSlots()), {"run", "luminosityBlock", "event"});
    auto eiResult = *eiHelper;
 
@@ -179,15 +178,6 @@ void rdf()
          }
       }
       {
-         for (auto vsd : eiResult[e].m_list) {
-            VsdEventInfo* m = dynamic_cast<VsdEventInfo*>(vsd);
-            vsdt.primvs().emplace_back(m->run(), m->lumi(), m->event());
-            std::cout  << "event of " << m->event() << "\n";
-            m->dump();
-         }
-      }
-      
-      {
          auto vsdc = caloMETResult[e];
          for (auto vsd : vsdc.m_list) {
             VsdMET* m = dynamic_cast<VsdMET*>(vsd);
@@ -195,6 +185,15 @@ void rdf()
             m->dump();
          }
       }
+      {
+         for (auto vsd : eiResult[e].m_list) {
+            VsdEventInfo* m = dynamic_cast<VsdEventInfo*>(vsd);
+            vsdt.infos().emplace_back(m->run(), m->lumi(), m->event());
+            std::cout  << "event of " << m->event() << "\n";
+            m->dump();
+         }
+      }
+
      vsdt.fill_all_braches(true);
    }
 
