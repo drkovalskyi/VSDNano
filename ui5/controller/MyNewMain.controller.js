@@ -80,7 +80,7 @@ let pthis = this;
          // console.log("showEventInfo");
          let ei = this.fw2gui.fTitle.split("/");
          var event = ei[0];
-         var nevents = ei[2];
+         var nevents = ei[1];
          var run = ei[2];
          var lumi = ei[3];
          let eiei = ei[4];
