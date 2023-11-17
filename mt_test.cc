@@ -1,4 +1,5 @@
 #include "MyVsdTree.h"
+#include "VsdBase.h"
 #include "TFile.h"
 
 #ifdef STANDALONE_WRITE_TEST
@@ -58,8 +59,22 @@ int main(int argc, char *argv[]) {
   TTree *tree = (TTree*) f->Get("VSD");
 
   MyVsdTree vsdt(tree);
+  vsdt.append_collections({"cands", "jets"});
 
   printf("Opened VsdTree N_events=%lld, current event=%lld\n", vsdt.n_events(), vsdt.current_event());
+  vsdt.goto_event(0);
+
+  VsdCollection vsdc;
+  std::string cname = "cands";
+  auto bbi = vsdt.m_supported_map.find(cname);
+  if (bbi !=  vsdt.m_supported_map.end())
+  {
+      bbi->second->fill_element_ptrs(vsdc.m_list);
+  }
+  else
+  {
+      printf("can't find branch %s\n", cname.c_str());
+  }
 
 
   TRint rint("mt_read", &argc, argv);
