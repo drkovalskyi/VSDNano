@@ -106,7 +106,7 @@ public:
    VsdMuon() = default;
    VsdMuon& operator=(const VsdMuon&) = default;
    virtual ~VsdMuon(){}
-   VsdMuon(float pt, float eta, float phi, int charge, bool global) : VsdCandidate(pt, eta, phi, charge), m_global(global) {}
+   VsdMuon(float pt, float eta, float phi, int charge=0, bool global=false) : VsdCandidate(pt, eta, phi, charge), m_global(global) {}
 };
 
 ////////////////////////////////////////////////
