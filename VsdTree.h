@@ -82,8 +82,9 @@ public:
   bool has_collection(const std::string &cn) const;
   VsdBranchBase* get_collection(const std::string &cn) const;
 
-protected:
+// protected:
   std::vector<VsdBranchBase*> m_supported_vector;
+
   std::map<std::string, VsdBranchBase*> m_supported_map;
 
   std::vector<VsdBranchBase*> m_active_vector;
