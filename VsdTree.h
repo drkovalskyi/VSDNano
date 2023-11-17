@@ -15,10 +15,13 @@ class VsdTree;
 class VsdBranchBase {
 public:
   VsdBranchBase(VsdTree *vsd_tree, std::string_view name, std::string_view type, std::string_view ctype);
+  virtual ~VsdBranchBase() {}
 
   virtual void register_branch(TTree *tree) = 0;
   virtual void clear_collection() = 0;
   virtual void set_branch_address(TBranch *branch) = 0;
+
+  virtual void fill_element_ptrs(std::vector<VsdBase*> &vec) const = 0;
 
   std::string m_name;
   std::string m_type;
@@ -36,22 +39,20 @@ public:
   VsdBranch(VsdTree *vsd_tree, std::string_view name, std::string_view type, std::string_view ctype) :
     VsdBranchBase(vsd_tree, name, type, ctype)
   {}
+  virtual ~VsdBranch() {}
 
   void register_branch(TTree *tree) override { m_branch = tree->Branch(m_name.c_str(), &m_collection); }
   void clear_collection() override { m_collection->clear(); }
   void set_branch_address(TBranch *branch) override { m_branch = branch; branch->SetAddress(&m_collection); }
 
+  void fill_element_ptrs(std::vector<VsdBase*> &vec) const override {
+    assert(m_collection != nullptr);
+    vec.reserve(vec.size() + m_collection->size());
+    for (auto &e : *m_collection) vec.push_back(&e);
+  }
+
   std::vector<VSDCLS> *m_collection = nullptr;
 };
-
-#define REGISTER_BRANCH(_type_, _name_) \
-protected: \
-  VsdBranch<_type_> m_ ## _name_ { this, #_name_, #_type_, "std::vector<" #_type_ ">" }; \
-public: \
-  bool has_ ## _name_() const { return m_ ## _name_.m_collection != nullptr; } \
-  std::vector<_type_>& _name_() const { return *m_ ## _name_.m_collection; } \
-  _type_& _name_(int i) const { return _name_()[i]; } \
-  int _name_ ## _size() const { return (int) _name_().size(); }
 
 // -------------------------------------------------------------
 
@@ -79,6 +80,7 @@ public:
   // Common functions
   bool supports_collection(const std::string &cn) const;
   bool has_collection(const std::string &cn) const;
+  VsdBranchBase* get_collection(const std::string &cn) const;
 
 protected:
   std::vector<VsdBranchBase*> m_supported_vector;
@@ -87,17 +89,10 @@ protected:
   std::vector<VsdBranchBase*> m_active_vector;
   std::map<std::string, VsdBranchBase*> m_active_map;
 
+  std::string m_vsd_tree_class;
+
   TTree *m_tree = nullptr;
   long long m_current_event = -1;
-
-  // Register supported collections, this has to be AFTER the above vector/map declarations.
-  REGISTER_BRANCH(VsdVertex, primvs);
-  REGISTER_BRANCH(VsdCandidate, cands);
-  REGISTER_BRANCH(VsdJet, jets);
-  REGISTER_BRANCH(VsdMET, cmets);
-  REGISTER_BRANCH(VsdEventInfo, infos);
 };
-
-#undef REGISTER_BRANCH
 
 #endif

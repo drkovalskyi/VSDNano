@@ -1,6 +1,8 @@
 #include "VsdTree.h"
 #include "TTree.h"
-#include "TFile.h"
+#include "TObjString.h"
+
+#include <fstream>
 
 //==============================================================
 
@@ -32,6 +34,16 @@ void VsdTree::append_collections(std::vector<std::string> &&col_names) {
 }
 
 void VsdTree::prepare_for_writing() {
+  TObjString vsd_tree_code;
+  std::string fname = m_vsd_tree_class + ".class";
+  printf("Opening .class file '%s'\n", fname.c_str());
+  if (std::ifstream ifs { fname }) {
+		vsd_tree_code.String().ReadFile(ifs);
+    vsd_tree_code.Write("vsd_tree_code");
+  } else {
+    throw std::runtime_error("Derived VsdTree .class file not found");
+  } 
+
   // register branches in order they were specified
   for (auto cbptr : m_active_vector) {
     cbptr->register_branch(m_tree);
@@ -99,75 +111,7 @@ bool VsdTree::has_collection(const std::string&cn) const {
   return i != m_active_map.end();
 }
 
-//==============================================================
-
-#ifdef STANDALONE_WRITE_TEST
-
-#include "TMath.h"
-#include "TRandom.h"
-
-// To load:
-// root.exe -e 'gSystem->Load("libVsdDict.so")' vsd.root
-
-int main() {
-  TFile *f = TFile::Open("vsd.root", "RECREATE");
-
-  VsdTree vsdt("VSD", "VSD TTree test");
-  vsdt.append_collections({"cands", "jets"});
-  vsdt.prepare_for_writing();
-
-  for (int i = 0; i < 100; ++i) {
-    int n_cands = 20 + gRandom->Integer(80);
-    for (int j = 0; j < n_cands; ++j) {
-      vsdt.cands().emplace_back(gRandom->Uniform(0.1, 20),
-                                gRandom->Uniform(-2.5, 2.5),
-                                gRandom->Uniform(-TMath::Pi(), TMath::Pi()),
-                                (gRandom->Rndm() > 0.5 ? 1 : -1));
-    }
-    int n_jets = 6 + gRandom->Integer(24);
-    for (int j = 0; j < n_jets; ++j) {
-      vsdt.jets().emplace_back(gRandom->Uniform(0.1, 20),
-                               gRandom->Uniform(-2.5, 2.5),
-                               gRandom->Uniform(-TMath::Pi(), TMath::Pi()),
-                              (gRandom->Rndm() > 0.5 ? 1 : -1),
-                               gRandom->Uniform(0.1, 0.9),
-                               gRandom->Uniform(0.05, 1));
-    }
-
-    vsdt.fill_all_braches(true);
-  }
-
-  vsdt.finalize_writing();
-
-  f->Close();
-  delete f;
-
-  return 0;
+VsdBranchBase* VsdTree::get_collection(const std::string&cn) const {
+  auto i = m_active_map.find(cn);
+  return i != m_active_map.end() ? i->second : nullptr;
 }
-
-#endif
-
-#ifdef STANDALONE_READ_TEST
-
-#include "TRint.h"
-#include "TROOT.h"
-
-int main(int argc, char *argv[]) {
-  TFile *f = TFile::Open("vsd.root", "READ");
-
-  TTree *tree = (TTree*) f->Get("VSD");
-
-  VsdTree vsdt(tree);
-
-  printf("Opened VsdTree N_events=%lld, current event=%lld\n", vsdt.n_events(), vsdt.current_event());
-
-
-  TRint rint("mt_read", &argc, argv);
-  rint.Run(true);
-
-  f->Close();
-
-  return 0;
-}
-
-#endif
