@@ -3,9 +3,9 @@
 #define VSD_BEGIN_CLASS(_class_name_) \
 class _class_name_: public VsdTree { \
 public: \
-  MyVsdTree(const char *name, const char * title) : \
+  _class_name_(const char *name, const char * title) : \
     VsdTree(name, title) { m_vsd_tree_class = #_class_name_; } \
-  MyVsdTree(TTree *tree) : \
+  _class_name_(TTree *tree) : \
     VsdTree(tree) { m_vsd_tree_class = #_class_name_; }
 
 #define VSD_REGISTER_BRANCH(_type_, _name_) \
