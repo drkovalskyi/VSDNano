@@ -66,8 +66,8 @@ int main(int argc, char *argv[]) {
 
   VsdCollection vsdc;
   std::string cname = "cands";
-  auto bbi = vsdt.m_supported_map.find(cname);
-  if (bbi !=  vsdt.m_supported_map.end())
+  auto bbi = vsdt.m_active_map.find(cname);
+  if (bbi !=  vsdt.m_active_map.end())
   {
       bbi->second->fill_element_ptrs(vsdc.m_list);
   }
@@ -75,7 +75,6 @@ int main(int argc, char *argv[]) {
   {
       printf("can't find branch %s\n", cname.c_str());
   }
-
 
   TRint rint("mt_read", &argc, argv);
   rint.Run(true);

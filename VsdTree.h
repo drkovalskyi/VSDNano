@@ -21,7 +21,7 @@ public:
   virtual void clear_collection() = 0;
   virtual void set_branch_address(TBranch *branch) = 0;
 
-  virtual void fill_element_ptrs(std::vector<VsdBase*> &vec) const = 0;
+  virtual void fill_element_ptrs(std::vector<VsdBase*> &vec) = 0;
 
   std::string m_name;
   std::string m_type;
@@ -42,16 +42,15 @@ public:
   virtual ~VsdBranch() {}
 
   void register_branch(TTree *tree) override { m_branch = tree->Branch(m_name.c_str(), &m_collection); }
-  void clear_collection() override { m_collection->clear(); }
+  void clear_collection() override { m_collection.clear(); }
   void set_branch_address(TBranch *branch) override { m_branch = branch; branch->SetAddress(&m_collection); }
 
-  void fill_element_ptrs(std::vector<VsdBase*> &vec) const override {
-    assert(m_collection != nullptr);
-    vec.reserve(vec.size() + m_collection->size());
-    for (auto &e : *m_collection) vec.push_back(&e);
+  void fill_element_ptrs(std::vector<VsdBase*> &vec) override {
+    vec.reserve(vec.size() + m_collection.size());
+    for (auto &e : m_collection) vec.push_back(&e);
   }
 
-  std::vector<VSDCLS> *m_collection = nullptr;
+  std::vector<VSDCLS> m_collection;
 };
 
 // -------------------------------------------------------------

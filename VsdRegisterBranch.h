@@ -12,9 +12,11 @@ public: \
 protected: \
   VsdBranch<_type_> m_ ## _name_ { this, #_name_, #_type_, "std::vector<" #_type_ ">" }; \
 public: \
-  bool has_ ## _name_() const { return m_ ## _name_.m_collection != nullptr; } \
-  std::vector<_type_>& _name_() const { return *m_ ## _name_.m_collection; } \
-  _type_& _name_(int i) const { return _name_()[i]; } \
+  bool has_ ## _name_() const { return !m_ ## _name_.m_collection.empty(); } \
+  const std::vector<_type_>& _name_() const { return m_ ## _name_.m_collection; } \
+  std::vector<_type_>& _name_() { return m_ ## _name_.m_collection; } \
+  const _type_& _name_(int i) const { return _name_()[i]; } \
+  _type_& _name_(int i) { return _name_()[i]; } \
   int _name_ ## _size() const { return (int) _name_().size(); }
 
 #define VSD_END_CLASS \
