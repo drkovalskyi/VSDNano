@@ -64,6 +64,11 @@ int main(int argc, char *argv[]) {
   printf("Opened VsdTree N_events=%lld, current event=%lld\n", vsdt.n_events(), vsdt.current_event());
   vsdt.goto_event(0);
 
+  if (vsdt.cands().empty())
+  {
+    printf("VSDTree has cands() empty !\n");
+  }
+
   VsdCollection vsdc;
   std::string cname = "cands";
   auto bbi = vsdt.m_active_map.find(cname);
