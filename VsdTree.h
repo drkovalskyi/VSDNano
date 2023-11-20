@@ -43,7 +43,11 @@ public:
 
   void register_branch(TTree *tree) override { m_branch = tree->Branch(m_name.c_str(), &m_collection); }
   void clear_collection() override { m_collection.clear(); }
-  void set_branch_address(TBranch *branch) override { m_branch = branch; branch->SetAddress(&m_collection); }
+  void set_branch_address(TBranch *branch) override { 
+    printf("BEGIN set_branch_address %s %s %lu \n", m_name.c_str(), m_type.c_str(), m_collection.size());
+     m_branch = branch; branch->SetAddress(&m_collection);
+    printf("END set_branch_address size %lu", m_collection.size());
+  }
 
   void fill_element_ptrs(std::vector<VsdBase*> &vec) override {
     vec.reserve(vec.size() + m_collection.size());
@@ -71,6 +75,7 @@ public:
 
   // Reading constructor & workflow
   VsdTree(TTree *tree);
+  void setAdressToSupportedBranches();
 
   long long n_events() const;
   long long current_event() const;

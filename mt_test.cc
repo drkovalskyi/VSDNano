@@ -59,6 +59,8 @@ int main(int argc, char *argv[]) {
   TTree *tree = (TTree*) f->Get("VSD");
 
   MyVsdTree vsdt(tree);
+
+  printf("Derived class, supported vector (size = %lu )\n", vsdt.m_supported_vector.size());
   vsdt.append_collections({"cands", "jets"});
 
   printf("Opened VsdTree N_events=%lld, current event=%lld\n", vsdt.n_events(), vsdt.current_event());

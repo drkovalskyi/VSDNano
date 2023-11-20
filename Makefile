@@ -3,7 +3,7 @@ ROOT_LDFLAGS := -L`root-config --libdir`
 
 
 clean:
-	rm -f reveNtuple VsdDict.cc VsdDict_rdict.pcm libVsdDict.so mt_read mt_write libVsdDictAMT.so
+	rm -f reveNtuple VsdDict.cc VsdDict_rdict.pcm libVsdDict.so mt_read mt_write libVsdDictAMT.so *.class
 
 ### VsdTree and dicts
 

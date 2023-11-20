@@ -68,6 +68,11 @@ void VsdTree::finalize_writing() {
 // === Reading interace ===
 
 VsdTree::VsdTree(TTree *tree) : m_tree(tree) {
+  printf("VsdTree Base class, supported vector (size = %lu )\n", m_supported_vector.size());
+}
+
+void VsdTree::setAdressToSupportedBranches()
+{
   for (auto cbptr : m_supported_vector) {
     const char *bname = cbptr->m_name.c_str();
     TBranch *br = (TBranch*) m_tree->GetListOfBranches()->FindObject(bname);

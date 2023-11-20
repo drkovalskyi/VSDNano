@@ -6,7 +6,7 @@ public: \
   _class_name_(const char *name, const char * title) : \
     VsdTree(name, title) { m_vsd_tree_class = #_class_name_; } \
   _class_name_(TTree *tree) : \
-    VsdTree(tree) { m_vsd_tree_class = #_class_name_; }
+    VsdTree(tree) { m_vsd_tree_class = #_class_name_; setAdressToSupportedBranches();}
 
 #define VSD_REGISTER_BRANCH(_type_, _name_) \
 protected: \

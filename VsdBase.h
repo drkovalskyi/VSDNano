@@ -199,7 +199,7 @@ public:
         {
             h->m_list.clear();
             h->fill();
-            if (0)
+            if (1)
             {
                 for (auto e : h->m_list)
                     e->dump();
@@ -216,9 +216,15 @@ public:
         {
             if (vsdc->m_purpose == "EventInfo")
             {
-                VsdEventInfo *ei = (VsdEventInfo *)vsdc->m_list[0];
+               printf("fff %lu \n", vsdc->m_list.size());
+               if (vsdc->m_list.empty())
+               {
+                  printf("empty event info !\n");
+                  return;
+               }
+                VsdEventInfo *ei = dynamic_cast<VsdEventInfo *>(vsdc->m_list[0]);
                 m_eventInfo = *ei;
-                // printf("...... setting event info %lld \n", m_eventInfo.m_event);
+                printf("...... setting event info %lld \n", m_eventInfo.event());
                 return;
             }
         }

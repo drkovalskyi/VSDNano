@@ -16,7 +16,7 @@ public:
         TFile* f = TFile::Open(fn.c_str(), "READ");
         TTree* tree = (TTree*) f->Get("VSD");
         m_vsdTree = new MyVsdNanoTree(tree);
-   m_vsdTree >append_collections({"cands", "muons", "jets", "primvs", "caloMETs", "chsMETs", "infos"});
+        m_vsdTree->append_collections({"cands", "muons", "jets", "primvs", "caloMETs", "chsMETs", "infos"});
         m_vsdTree->goto_event(0);
 
         for (auto &s : m_vsdTree->m_supported_vector)
@@ -26,6 +26,12 @@ public:
             std::string purpose = s->m_type.substr(3);
             VsdCollection* c = new VsdCollection(name, purpose);
             c->m_type = s->m_type;
+
+
+    TBranch *br = (TBranch*) tree->GetListOfBranches()->FindObject(name.c_str());
+      s->set_branch_address(br);
+
+
             addCollection(c);
         }
     }
@@ -41,8 +47,8 @@ public:
         {
             h->m_list.clear();
             std::string cname = h->m_name;
-            auto bbi = m_vsdTree->m_supported_map.find(cname);
-            if (bbi !=  m_vsdTree->m_supported_map.end())
+            auto bbi = m_vsdTree->m_active_map.find(cname);
+            if (bbi !=  m_vsdTree->m_active_map.end())
             {
                 bbi->second->fill_element_ptrs(h->m_list);
             }
