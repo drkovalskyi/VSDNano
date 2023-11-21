@@ -79,6 +79,8 @@ void VsdTree::setAdressToSupportedBranches()
     if (br != nullptr) {
       printf("  Branch %s found ... setting up.\n", bname);
       cbptr->set_branch_address(br);
+      m_active_vector.push_back(cbptr);
+      m_active_map.insert(std::make_pair(cbptr->m_name, cbptr));
     } else {
       printf("  Branch %s not found.\n", bname);
     }

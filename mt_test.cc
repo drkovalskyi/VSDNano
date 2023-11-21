@@ -61,7 +61,8 @@ int main(int argc, char *argv[]) {
   MyVsdTree vsdt(tree);
 
   printf("Derived class, supported vector (size = %lu )\n", vsdt.m_supported_vector.size());
-  vsdt.append_collections({"cands", "jets"});
+  // Do not call in reading! This is writing only.
+  // vsdt.append_collections({"cands", "jets"});
 
   printf("Opened VsdTree N_events=%lld, current event=%lld\n", vsdt.n_events(), vsdt.current_event());
   vsdt.goto_event(0);
@@ -77,6 +78,7 @@ int main(int argc, char *argv[]) {
   if (bbi !=  vsdt.m_active_map.end())
   {
       bbi->second->fill_element_ptrs(vsdc.m_list);
+      printf("Filled element pointers for 'cands', size=%d\n", (int) vsdc.m_list.size());
   }
   else
   {

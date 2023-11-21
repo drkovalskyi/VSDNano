@@ -37,16 +37,19 @@ template<class VSDCLS>
 class VsdBranch : public VsdBranchBase {
 public:
   VsdBranch(VsdTree *vsd_tree, std::string_view name, std::string_view type, std::string_view ctype) :
-    VsdBranchBase(vsd_tree, name, type, ctype)
+    VsdBranchBase(vsd_tree, name, type, ctype),
+    m_collection_ptr(&m_collection)
   {}
   virtual ~VsdBranch() {}
 
-  void register_branch(TTree *tree) override { m_branch = tree->Branch(m_name.c_str(), &m_collection); }
+  void register_branch(TTree *tree) override { m_branch = tree->Branch(m_name.c_str(), &m_collection_ptr); }
   void clear_collection() override { m_collection.clear(); }
   void set_branch_address(TBranch *branch) override { 
-    printf("BEGIN set_branch_address %s %s %lu \n", m_name.c_str(), m_type.c_str(), m_collection.size());
-     m_branch = branch; branch->SetAddress(&m_collection);
-    printf("END set_branch_address size %lu", m_collection.size());
+    printf("BEGIN set_branch_address %s %s %d\n", m_name.c_str(), m_type.c_str(), (int) m_collection.size());
+     m_branch = branch;
+     m_branch->SetAddress(&m_collection_ptr);
+     m_branch->GetEntry(0);
+    printf("END set_branch_address size %d\n", (int) m_collection.size());
   }
 
   void fill_element_ptrs(std::vector<VsdBase*> &vec) override {
@@ -54,7 +57,7 @@ public:
     for (auto &e : m_collection) vec.push_back(&e);
   }
 
-  std::vector<VSDCLS> m_collection;
+  std::vector<VSDCLS> m_collection, *m_collection_ptr;
 };
 
 // -------------------------------------------------------------
