@@ -16,7 +16,6 @@ public:
         TFile* f = TFile::Open(fn.c_str(), "READ");
         TTree* tree = (TTree*) f->Get("VSD");
         m_vsdTree = new MyVsdNanoTree(tree);
-        m_vsdTree->append_collections({"cands", "muons", "jets", "primvs", "caloMETs", "chsMETs", "infos"});
         m_vsdTree->goto_event(0);
 
         for (auto &s : m_vsdTree->m_supported_vector)
@@ -24,21 +23,14 @@ public:
             printf("branch name %s trype %s colType %s \n", s->m_name.c_str(), s->m_type.c_str(), s->m_collection_type.c_str());
             std::string name =  s->m_name;
             std::string purpose = s->m_type.substr(3);
+            c->m_type =  s->m_type;
             VsdCollection* c = new VsdCollection(name, purpose);
-            c->m_type = s->m_type;
-
-
-    TBranch *br = (TBranch*) tree->GetListOfBranches()->FindObject(name.c_str());
-      s->set_branch_address(br);
-
-
             addCollection(c);
         }
     }
 
     virtual void GotoEvent(int eventIdx)
     {
-        printf("Go to event %d \n", eventIdx);
         m_eventIdx = eventIdx;
         m_vsdTree->goto_event(eventIdx);
 
