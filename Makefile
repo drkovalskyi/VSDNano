@@ -16,7 +16,7 @@ libVsdDict.so: VsdDict.cc
 mt_read: mt_test.cc VsdTree.h VsdTree.cc VsdDict.cc
 	c++ -DSTANDALONE_READ_TEST ${ROOT_CFLAGS} -g -O0 -std=c++1z `root-config --libs` -o $@ mt_test.cc VsdTree.cc VsdDict.cc
 
-mt_write: mt_test.cc VsdTree.h VsdTree.cc VsdDict.cc
+mt_write: mt_test.cc VsdTree.h VsdTree.cc VsdDict.cc MyVsdTree.class
 	c++ -DSTANDALONE_WRITE_TEST ${ROOT_CFLAGS} -g -O0 -std=c++1z `root-config --libs` -o $@ mt_test.cc VsdTree.cc VsdDict.cc
 
 MyVsdTree.class: MyVsdTree.h
