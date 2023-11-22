@@ -216,7 +216,6 @@ public:
         {
             if (vsdc->m_purpose == "EventInfo")
             {
-               printf("fff %lu \n", vsdc->m_list.size());
                if (vsdc->m_list.empty())
                {
                   printf("empty event info !\n");
@@ -224,7 +223,7 @@ public:
                }
                 VsdEventInfo *ei = dynamic_cast<VsdEventInfo *>(vsdc->m_list[0]);
                 m_eventInfo = *ei;
-                printf("...... setting event info %lld \n", m_eventInfo.event());
+                // printf("...... setting event info %lld \n", m_eventInfo.event());
                 return;
             }
         }
