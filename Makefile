@@ -1,9 +1,16 @@
 ROOT_CFLAGS := `root-config --cflags`
 ROOT_LDFLAGS := -L`root-config --libdir`
 
+all: myvsd nanovsd
+
+myvsd: mt_write mt_read MyVsdTree.class vsd-nano.root
+	@echo Now you can run "make evd"
+
+nanovsd: libVsdNanoDict.so MyVsdNanoTree.class
 
 clean:
-	rm -f reveNtuple VsdDict.cc VsdDict_rdict.pcm libVsdDict.so mt_read mt_write libVsdNanoDict.so *.class
+	rm -f reveNtuple VsdDict.cc VsdDict_rdict.pcm libVsdDict.so
+	rm -f mt_read mt_write libVsdNanoDict.so *.class
 
 ### VsdTree and dicts
 
@@ -24,8 +31,12 @@ MyVsdTree.class: MyVsdTree.h
 
 
 ### CMS Nano
-sample:
-	curl -O https://amraktad.web.cern.ch/amraktad/nano-CMSSW_11_0_0-RelValZTT-mcRun.root
+
+NANO_ROOT := nano-CMSSW_11_0_0-RelValZTT-mcRun.root
+
+sample: ${NANO_ROOT}
+${NANO_ROOT}:
+	curl -O https://amraktad.web.cern.ch/amraktad/${NANO_ROOT}
 
 MyVsdNanoTree.class: MyVsdNanoTree.h
 	cpp -DFOR_VSD_CODE MyVsdNanoTree.h | sed '/^#/d' > MyVsdNanoTree.class
@@ -34,11 +45,9 @@ libVsdNanoDict.so: VsdDict.cc
 	c++ -shared -fPIC -o libVsdNanoDict.so ${ROOT_CFLAGS} VsdDict.cc VsdTree.cc MyVsdNanoTree.h VsdRegisterBranch.h
 
 # write nano vsd root file
-vsd-nano.root: libVsdNanoDict.so MyVsdNanoTree.class
-	root.exe -e 'gSystem->Load("libVsdNanoDict.so")' rdf.C
+vsd-nano.root: libVsdNanoDict.so MyVsdNanoTree.class ${NANO_ROOT}
+	root.exe -e 'gSystem->Load("libVsdNanoDict.so")' rdf.C'("${NANO_ROOT}")'
 
 ## run event display
 evd: vsd-nano.root
 	root.exe  -e 'gSystem->Load("libVsdNanoDict.so")' testevd.C
-
-

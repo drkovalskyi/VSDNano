@@ -12,13 +12,13 @@ typedef std::vector<VsdCollection> VsdCollections;
 
 #define RDF_EMPTY(_name_) \
 public: \
-    _name_(unsigned int) {} \
-   std::string GetActionName() const { return "vsdhelper"; } \
+   _name_(unsigned int) {} \
+   std::string GetActionName() const { return "vsdhelper_" #_name_; } \
    void Initialize() { std::cout << "initialize " << GetActionName() <<" \n"; } \
    void InitTask(TTreeReader *, int) {std::cout << "init task\n";} \
    using Result_t = VsdCollections; \
-  std::shared_ptr<VsdCollections> GetResultPtr() const { return fFinalResult; } \
-  std::shared_ptr<VsdCollections> fFinalResult = std::make_shared<VsdCollections>(); \
+   std::shared_ptr<VsdCollections> GetResultPtr() const { return fFinalResult; } \
+   std::shared_ptr<VsdCollections> fFinalResult = std::make_shared<VsdCollections>(); \
    void Finalize(){}
 
 
@@ -41,7 +41,6 @@ public:
          fFinalResult->back().m_list.push_back(m);
       }
    }
-
 };
 
 //----------------------------------------------------------------
@@ -63,8 +62,8 @@ public:
          fFinalResult->back().m_list.push_back(m);
       }
    }
-
 };
+
 //----------------------------------------------------------------
 class JetHelper : public ROOT::Detail::RDF::RActionImpl<JetHelper> {
 public:
@@ -72,7 +71,7 @@ public:
    template <typename nSize_t, typename arrPt_t, typename arrEt_t, typename arrPhi_t>
    void Exec(unsigned int slot, nSize_t n, arrPt_t mPts, arrEt_t mEts, arrPhi_t mPhis)
    {
-       fFinalResult->push_back(VsdCollection());
+      fFinalResult->push_back(VsdCollection());
       for (unsigned int i = 0; i < n; i++)
       {
          VsdJet *m = new VsdJet();
@@ -156,9 +155,8 @@ public:
 ////////////////// main //////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-void rdf()
+void rdf(const char *path)
 {
-   std::string path  = "/home/alja/root-dev/universal_format/nano.root";
    ROOT::RDataFrame d("Events", path);
 
    // go to event that has muons
@@ -265,5 +263,3 @@ void rdf()
    f->Close();
    delete f;
 }
-
-
