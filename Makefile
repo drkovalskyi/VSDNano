@@ -3,7 +3,7 @@ ROOT_LDFLAGS := -L`root-config --libdir`
 
 
 clean:
-	rm -f reveNtuple VsdDict.cc VsdDict_rdict.pcm libVsdDict.so mt_read mt_write libVsdDictAMT.so *.class
+	rm -f reveNtuple VsdDict.cc VsdDict_rdict.pcm libVsdDict.so mt_read mt_write libVsdNanoDict.so *.class
 
 ### VsdTree and dicts
 
@@ -30,15 +30,15 @@ sample:
 MyVsdNanoTree.class: MyVsdNanoTree.h
 	cpp -DFOR_VSD_CODE MyVsdNanoTree.h | sed '/^#/d' > MyVsdNanoTree.class
 
-libVsdDictAMT.so: VsdDict.cc
-	c++ -shared -fPIC -o libVsdDictAMT.so ${ROOT_CFLAGS} VsdDict.cc VsdTree.cc MyVsdNanoTree.h VsdRegisterBranch.h
+libVsdNanoDict.so: VsdDict.cc
+	c++ -shared -fPIC -o libVsdNanoDict.so ${ROOT_CFLAGS} VsdDict.cc VsdTree.cc MyVsdNanoTree.h VsdRegisterBranch.h
 
 # write nano vsd root file
-vsd-nano.root: libVsdDictAMT.so MyVsdNanoTree.class
-	root.exe -e 'gSystem->Load("libVsdDictAMT.so")' rdf.C
+vsd-nano.root: libVsdNanoDict.so MyVsdNanoTree.class
+	root.exe -e 'gSystem->Load("libVsdNanoDict.so")' rdf.C
 
 ## run event display
 evd: vsd-nano.root
-	root.exe  -e 'gSystem->Load("libVsdDictAMT.so")' testevd.C
+	root.exe  -e 'gSystem->Load("libVsdNanoDict.so")' testevd.C
 
 
