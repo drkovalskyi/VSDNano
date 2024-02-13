@@ -14,7 +14,7 @@ class VsdProvider;
 class VsdBase
 {
 public:
-virtual ~VsdBase(){}
+   virtual ~VsdBase(){}
    virtual void dump() { printf("dump VSD Base class\n"); }
 };
 
@@ -94,7 +94,6 @@ public:
    void dump() { printf("VsdJet pt:%.2f, eta:%.2f, phi:%.2f / had_frac: %.2f\n", m_pt, m_eta, m_phi, m_hadFraction); }
 };
 
-
 /////////////////////////////////////////////////
 class VsdMuon : public VsdCandidate
 {
@@ -146,6 +145,7 @@ public:
    using VsdBase::dump;
   void dump() { printf("run %d lumi %d event %lld \n", m_run, m_lumi, m_event);}
 };
+
 /////////////////////////////////////////////////
 // Event structs
 /////////////////////////////////////////////////
@@ -168,6 +168,5 @@ public:
 
    virtual void fill() {}
 };
-
 
 #endif // #ifdef VsdBase

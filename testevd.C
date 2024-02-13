@@ -1,9 +1,9 @@
 #include "VsdProvider.h"
 
-void testevd()
+void testevd(const char *vsd_file="vsd-nano.root")
 {
     try {
-        g_provider = new VsdProvider("vsd-nano.root");
+        g_provider = new VsdProvider(vsd_file);
         gROOT->LoadMacro("evd.h");
         gROOT->ProcessLine("evd()");
     }

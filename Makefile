@@ -29,6 +29,11 @@ mt_write: mt_test.cc VsdTree.h VsdTree.cc VsdDict.cc MyVsdTree.class
 MyVsdTree.class: MyVsdTree.h
 	cpp -DFOR_VSD_CODE MyVsdTree.h | sed '/^#/d' > MyVsdTree.class
 
+vsd.root: mt_write
+	./mt_write
+
+mt_evd: vsd.root
+	root.exe  -e 'gSystem->Load("libVsdDict.so")' testevd.C'("vsd.root")'
 
 ### CMS Nano
 
@@ -50,4 +55,4 @@ vsd-nano.root: libVsdNanoDict.so MyVsdNanoTree.class ${NANO_ROOT}
 
 ## run event display
 evd: vsd-nano.root
-	root.exe  -e 'gSystem->Load("libVsdNanoDict.so")' testevd.C
+	root.exe  -e 'gSystem->Load("libVsdNanoDict.so")' testevd.C'("vsd-nano.root")'

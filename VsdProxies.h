@@ -28,6 +28,7 @@
 using namespace ROOT::Experimental;
 
 //====================================================================================
+
 REveGeoShape *getShape(const char *name,
                        TGeoBBox *shape,
                        Color_t color)
@@ -107,11 +108,7 @@ void addRhoZEnergyProjection(REveDataProxyBuilderBase *pb, REveElement *containe
    }
 }
 
-
 //====================================================================================
-
-
-
 
 class VertexProxyBuilder : public REveDataSimpleProxyBuilderTemplate<VsdVertex>
 {
@@ -205,7 +202,6 @@ public:
    */
    }
 };
-
 
 //====================================================================================
 
@@ -372,7 +368,9 @@ public:
       // track->SetName(Form("element %s id=%d", iItemHolder->GetCName(), track->GetElementId()));
    }
 };
+
 //====================================================================================
+
 class JetProxyBuilder : public REveDataSimpleProxyBuilderTemplate<VsdJet>
 {
    struct Cell

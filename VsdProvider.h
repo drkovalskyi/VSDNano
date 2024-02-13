@@ -55,7 +55,6 @@ public:
         }
     }
 
-
     void addCollection(VsdCollection *h)
     {
         m_collections.push_back(h);
