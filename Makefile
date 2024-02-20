@@ -26,6 +26,12 @@ mt_read: mt_test.cc VsdTree.h VsdTree.cc VsdDict.cc
 mt_write: mt_test.cc VsdTree.h VsdTree.cc VsdDict.cc MyVsdTree.class
 	c++ -DSTANDALONE_WRITE_TEST ${ROOT_CFLAGS} -g -O0 -std=c++1z `root-config --libs` -o $@ mt_test.cc VsdTree.cc VsdDict.cc
 
+mt_user: mt_test.cc VsdTree.h VsdTree.cc VsdDict.cc UserVsd.root
+	c++ -DUSER_VSD_READ_TEST ${ROOT_CFLAGS} -g -O0 -std=c++1z `root-config --libs` -o $@ mt_test.cc VsdTree.cc VsdDict.cc
+
+mt_colproxy: mt_test.cc VsdTree.h VsdTree.cc VsdDict.cc UserVsd.root
+	c++ -DUSER_COLPROXY_READ_TEST ${ROOT_CFLAGS} -g -O0 -std=c++1z `root-config --libs` -o $@ mt_test.cc VsdTree.cc VsdDict.cc
+
 MyVsdTree.class: MyVsdTree.h
 	cpp -DFOR_VSD_CODE MyVsdTree.h | sed '/^#/d' > MyVsdTree.class
 
@@ -34,6 +40,9 @@ vsd.root: mt_write
 
 mt_evd: vsd.root
 	root.exe  -e 'gSystem->Load("libVsdDict.so")' testevd.C'("vsd.root")'
+
+UserVsd.root: UserVsd.py
+	python UserVsd.py
 
 ### CMS Nano
 
