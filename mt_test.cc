@@ -174,7 +174,6 @@ int main(int argc, char *argv[]) {
 
 #endif
 
-#define USER_COLPROXY_READ_TEST
 #ifdef USER_COLPROXY_READ_TEST
 
 #include "VsdTree.h"
@@ -199,13 +198,19 @@ int main(int argc, char *argv[]) {
     TBranchElement *m_branch;
     TClass *m_cclass, *m_eclass;
     TVirtualCollectionProxy *m_proxy;
+    long long m_base_offset;
     char *m_collection;
     std::string m_name;
+
+    VsdBase* vsd_base_at(int i) {
+      return (VsdBase*)((void*)((long long) m_proxy->At(i) + m_base_offset));
+    }
 
     ColBranchInfo() = default;
   };
 
   std::map<std::string, ColBranchInfo> cmap;
+  TClass *vsdbase_class = TClass::GetClass<VsdBase>();
 
   TPMERegexp re("^(?:std::)?vector<(Vsd[\\w\\d]+)>$");
   int i = 0;
@@ -222,7 +227,7 @@ int main(int argc, char *argv[]) {
              re[1].Data(), re[0].Data());
 
       bre->GetEntry(0);
-      printf(" get entry(0) -> address=%p object=%p\n",
+      printf(" get entry(0) -> address=%p object=%p -- VsdBase offset=%d\n",
           bre->GetAddress(), bre->GetObject());
 
       TClass *cc = TClass::GetClass(br->GetClassName());
@@ -230,25 +235,34 @@ int main(int argc, char *argv[]) {
       cp->PushProxy(bre->GetObject());
 
       TClass *ec = TClass::GetClass(re[1].Data());
-      cmap.insert({br->GetName(), {bre, cc, ec, cp, bre->GetObject(), br->GetName()}});
+      void *ooo = ec->New();
+      long long off = ec->GetBaseClassOffset(vsdbase_class, ooo);
+      ec->Destructor(ooo);
 
-      printf("  post get entry 0 %s %u\n", br->GetName(), cp->Size());
+      cmap.insert({br->GetName(), {bre, cc, ec, cp, off, bre->GetObject(), br->GetName()}});
+
+      printf("  post get entry 0 %s %u\n",
+             br->GetName(), cp->Size());
     }
   }
 
   // Crashed before letting ROOT setup the branches.
   // tree->GetEntry(0);
 
-  for (int ev = 0; ev < 10; ++ev) {
+  for (int ev = 0; ev < 2; ++ev) {
     printf("Event %d\n", ev);
     tree->GetEntry(ev);
     for (auto &&[name, cbi] : cmap) {
       printf("  Trying to read %s\n", name.c_str());
-      //cbi.m_proxy->PushProxy(cbi.m_collection);
+
       printf("    pre get branch entry size = %u\n", cbi.m_proxy->Size());
       cbi.m_branch->GetEntry(ev);
       printf("    size = %u\n", cbi.m_proxy->Size());
-      // cbi.m_proxy->PopProxy();
+
+      int ss = cbi.m_proxy->Size();
+      for (int i = 0; i < ss; ++i) {
+        cbi.vsd_base_at(i)->dump();
+      }
     }
   }
 
