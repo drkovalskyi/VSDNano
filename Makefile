@@ -54,4 +54,4 @@ ${NANO_ROOT}:
 
 ## run event display
 evd: UserVsd.root libVsdDict.so
-	root.exe  -e 'gSystem->Load("libVsdDict.so")' evd.h
+	root.exe  -e 'gSystem->Load("libVsdDict.so")' 'evd.h("UserVsd.root")'

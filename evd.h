@@ -615,9 +615,9 @@ void createScenesAndViews()
 }
 ////////////////////////////////////////////////////
 ////////////////////////////////////////////////////
-void evd()
+void evd(const char* data_path)
 {
-   VsdProvider* prov = new VsdProvider("UserVsd.root");
+   VsdProvider* prov = new VsdProvider(data_path);
    eveMng = REveManager::Create();
 
 //  ROOT::Experimental::gEve->GetWebWindow()->SetClientVersion("33.3");
