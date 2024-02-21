@@ -1,5 +1,6 @@
 #include "VsdBase.h"
 #include "VsdProxies.h"
+#include "VsdProvider.h"
 
 #include "ROOT/REveDataCollection.hxx"
 #include "ROOT/REveDataSimpleProxyBuilderTemplate.hxx"
@@ -240,7 +241,7 @@ public:
         std::cout << typeid(vsdc).name() << '\n';
 
         // amt alternative way
-        // std::string pbn = vsdc->m_purpose + "ProxyBuilder";
+        std::string pbn = vsdc->m_purpose + "ProxyBuilder";
         // TClass* pbc = TClass::GetClass(pbn.c_str());
 
         printf("can't find proxy for purpose %s \n", vsdc->m_purpose.c_str());
@@ -252,13 +253,14 @@ public:
     {
         REveDataCollection *collection = new REveDataCollection(vsdc->m_name);
         m_collections->AddElement(collection);
-        std::string class_name = vsdc->m_type;// "VSD" + vsdc->m_name; // !!! This works beacuse it is a root macro
+        std::string class_name = "Vsd" + vsdc->m_purpose; // !!! This works beacuse it is a root macro
 
-        // std::cout << "calss name " << class_name << "\n";
+        std::cout << "addCollection class name " << class_name << "\n";
 
         TClass* tc  = TClass::GetClass(class_name.c_str());
         if (!tc) {
-            class_name = "VSD" + vsdc->m_purpose; // !!! This works beacuse it is a root macro
+            // class_name = "VSD" + vsdc->m_purpose; // !!! This works beacuse it is a root macro
+            class_name = vsdc->m_purpose;
             tc  = TClass::GetClass(class_name.c_str());
             if (!tc)
             throw( std::runtime_error("addCollection " +  vsdc->m_name ) );
@@ -615,7 +617,7 @@ void createScenesAndViews()
 ////////////////////////////////////////////////////
 void evd()
 {
-   VsdProvider* prov = g_provider;
+   VsdProvider* prov = new VsdProvider("UserVsd.root");
    eveMng = REveManager::Create();
 
 //  ROOT::Experimental::gEve->GetWebWindow()->SetClientVersion("33.3");

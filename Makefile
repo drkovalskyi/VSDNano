@@ -52,16 +52,6 @@ sample: ${NANO_ROOT}
 ${NANO_ROOT}:
 	curl -O https://amraktad.web.cern.ch/amraktad/${NANO_ROOT}
 
-MyVsdNanoTree.class: MyVsdNanoTree.h
-	cpp -DFOR_VSD_CODE MyVsdNanoTree.h | sed '/^#/d' > MyVsdNanoTree.class
-
-libVsdNanoDict.so: VsdDict.cc
-	c++ -shared -fPIC -o libVsdNanoDict.so ${ROOT_CFLAGS} VsdDict.cc VsdTree.cc MyVsdNanoTree.h VsdRegisterBranch.h
-
-# write nano vsd root file
-vsd-nano.root: libVsdNanoDict.so MyVsdNanoTree.class ${NANO_ROOT}
-	root.exe -e 'gSystem->Load("libVsdNanoDict.so")' rdf.C'("${NANO_ROOT}")'
-
 ## run event display
-evd: vsd-nano.root
-	root.exe  -e 'gSystem->Load("libVsdNanoDict.so")' testevd.C'("vsd-nano.root")'
+evd: UserVsd.root libVsdDict.so
+	root.exe  -e 'gSystem->Load("libVsdDict.so")' evd.h

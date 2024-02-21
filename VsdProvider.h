@@ -4,55 +4,85 @@
 VsdProvider *g_provider = nullptr;
 VsdTree* g_vsdTree = nullptr; // temporary, but piggish AMT!!!
 
+struct ColBranchInfo
+{
+    TBranchElement *m_branch;
+    TClass *m_cclass, *m_eclass;
+    TVirtualCollectionProxy *m_proxy;
+    long long m_base_offset;
+    char *m_collection;
+    std::string m_name;
+
+    VsdBase *vsd_base_at(int i)
+    {
+        return (VsdBase *)((void *)((long long)m_proxy->At(i) + m_base_offset));
+    }
+
+    ColBranchInfo() = default;
+};
+
 class VsdProvider
 {
 public:
-
-    VsdTree* m_vsdTree{nullptr};
+    TTree *m_vsdTree{nullptr};
     VsdEventInfo m_eventInfo;
 
     Long64_t m_eventIdx{0};
     std::vector<VsdCollection *> m_collections;
     std::string m_title{"VsdProvider"};
 
-    virtual ~VsdProvider(){}
+    // New!
+    std::map<std::string, ColBranchInfo> cmap;
+    TClass *vsdbase_class = TClass::GetClass<VsdBase>();
+
+    virtual ~VsdProvider() {}
 
     // construcutor
     VsdProvider(std::string fn)
     {
-        TFile* f = TFile::Open(fn.c_str(), "READ");
-        TTree* tt = (TTree*) f->Get("VSD");
+        TFile *f = TFile::Open(fn.c_str(), "READ");
+        TTree *tree = (TTree *)f->Get("VSD");
+        printf("\n--- Starting branch processing ...\n");
 
-        std::string cname = "VsdTree";
-
-        TObjString *cc = (TObjString*) gFile->Get("vsd_tree_code");
-        std::string scc = cc->String().Data();
-        std::regex re("class (.*): public VsdTree");
-        std::smatch m;
-        std::regex_search(scc, m, re);
-        if (m.size() > 1) {
-            cname = m[1].str();
-        }
-        else
-        {  
-            throw std::runtime_error("Can't guess the tree class");
-        }
-
-        TString cmd = TString::Format("\n g_vsdTree = new %s((TTree*) gFile->Get(\"VSD\"));\n", cname.c_str());
-        cc->String().Append(cmd);
-        gROOT->ProcessLine(cc->GetString());
-        m_vsdTree = g_vsdTree;
-   
-        m_vsdTree->goto_event(0);
-        for (auto &s : m_vsdTree->m_supported_vector)
+        TPMERegexp re("^(?:std::)?vector<(Vsd[\\w\\d]+)>$");
+        int i = 0;
+        TIter bi(tree->GetListOfBranches());
+        while (TBranch *br = (TBranch *)bi())
         {
-            // printf("branch name %s trype %s colType %s \n", s->m_name.c_str(), s->m_type.c_str(), s->m_collection_type.c_str());
-            std::string name =  s->m_name;
-            std::string purpose = s->m_type.substr(3);
-            VsdCollection* c = new VsdCollection(name, purpose);
-            c->m_type =  s->m_type;
-            addCollection(c);
+            TBranchElement *bre = dynamic_cast<TBranchElement *>(br);
+            printf("  %2d. name='%s' class='%s' ptr=%p mother_ptr=%p branch_class='%s' branch_element_ptr=%p\n",
+                   ++i, br->GetName(), br->GetClassName(), br, br->GetMother(), br->ClassName(), bre);
+
+            if (bre && re.Match(br->GetClassName()))
+            {
+                printf("      matched type '%s' ... whole = '%s'\n",
+                       re[1].Data(), re[0].Data());
+
+                bre->GetEntry(0);
+                // printf(" get entry(0) -> address=%p object=%p -- VsdBase offset=%d\n",
+                //       bre->GetAddress(), bre->GetObject());
+
+                TClass *cc = TClass::GetClass(br->GetClassName());
+                TVirtualCollectionProxy *cp = cc->GetCollectionProxy()->Generate();
+                cp->PushProxy(bre->GetObject());
+
+                TClass *ec = TClass::GetClass(re[1].Data());
+                void *ooo = ec->New();
+                long long off = ec->GetBaseClassOffset(vsdbase_class, ooo);
+                ec->Destructor(ooo);
+
+                cmap.insert({br->GetName(), {bre, cc, ec, cp, off, bre->GetObject(), br->GetName()}});
+
+                printf("  post get entry 0 %s %u\n",
+                       br->GetName(), cp->Size());
+
+                // Old!
+                std::string purpose = re[1].Data();
+                addCollection(new VsdCollection(br->GetName(), purpose.substr(3)));
+            }
         }
+
+        m_vsdTree = tree; // Old
     }
 
     void addCollection(VsdCollection *h)
@@ -62,23 +92,27 @@ public:
 
     virtual void set_event_info()
     {
-        printf("vsd provier %lld events total %lld !!!!! \n", m_eventIdx, GetNumEvents());
+        printf("vsd provider %lld events total %lld !!!!! \n", m_eventIdx, GetNumEvents());
+        m_eventInfo = VsdEventInfo(9999, 9999, m_eventIdx);
 
         for (auto &vsdc : m_collections)
         {
             if (vsdc->m_purpose == "EventInfo")
             {
-               if (vsdc->m_list.empty())
-               {
-                  printf("empty event info !\n");
-                  return;
-               }
+                if (vsdc->m_list.empty())
+                {
+                    printf("empty event info !\n");
+                    return;
+                }
                 VsdEventInfo *ei = dynamic_cast<VsdEventInfo *>(vsdc->m_list[0]);
                 m_eventInfo = *ei;
                 // printf("...... setting event info %lld \n", m_eventInfo.event());
                 return;
             }
         }
+
+        // just set event id if other information is not available
+        m_eventInfo = VsdEventInfo(9999, 9999, m_eventIdx);
     }
 
     VsdCollection *RefColl(const std::string &name)
@@ -94,26 +128,27 @@ public:
     void GotoEvent(int eventIdx)
     {
         m_eventIdx = eventIdx;
-        m_vsdTree->goto_event(eventIdx);
 
-        // fill VSD collections
-        for (auto h : m_collections)
+        m_vsdTree->GetEntry(eventIdx);
+
+        for (auto &&[name, cbi] : cmap)
         {
-            h->m_list.clear();
-            std::string cname = h->m_name;
-            auto bbi = m_vsdTree->m_active_map.find(cname);
-            if (bbi !=  m_vsdTree->m_active_map.end())
+            printf("  Trying to read %s\n", name.c_str());
+            printf("    pre get branch entry size = %u\n", cbi.m_proxy->Size());
+            cbi.m_branch->GetEntry(eventIdx);
+            printf("    size = %u\n", cbi.m_proxy->Size());
+
+            VsdCollection *vc = RefColl(name);
+            vc->m_list.clear();
+            int ss = cbi.m_proxy->Size();
+            for (int i = 0; i < ss; ++i)
             {
-                bbi->second->fill_element_ptrs(h->m_list);
-            }
-            else
-            {
-                printf("can't find branch %s\n", cname.c_str());
+                // cbi.vsd_base_at(i)->dump();
+                vc->m_list.push_back(cbi.vsd_base_at(i));
             }
         }
-
         set_event_info();
-   }
+    }
 
-    virtual Long64_t GetNumEvents() { return m_vsdTree->n_events(); }
+    virtual Long64_t GetNumEvents() { return m_vsdTree->GetEntriesFast(); }
 };
