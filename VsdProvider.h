@@ -1,5 +1,9 @@
 #include "VsdBase.h"
 #include "VsdTree.h"
+#include "TClass.h"
+#include "TVirtualCollectionProxy.h"
+#include "TBranchElement.h"
+#include "TPRegexp.h"
 
 VsdProvider *g_provider = nullptr;
 VsdTree* g_vsdTree = nullptr; // temporary, but piggish AMT!!!
