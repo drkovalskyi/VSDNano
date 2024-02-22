@@ -13,6 +13,8 @@
 #include <ROOT/RFileDialog.hxx>
 #include "nlohmann/json.hpp"
 
+#include "evd.h"
+
 #include <cstdio>
 #include <ctime>
 #include <string>
@@ -30,27 +32,12 @@
 #include <iostream>
 #include <fstream>
 
-#include "evd.h"
-
 static int SERVICE_PORT = 5555;
 static int MAX_SERVERS = 100;
 static int USER_TIMEOUT = 144000;
 static int DISCONNECT_TIMEOUT = 600;
 
 namespace REX = ROOT::Experimental;
-//=============================================================================
-// The event display specific
-//=============================================================================
-struct EventDisplayInstance
-{
-   void run(nlohmann::json &req)
-   {
-      std::string dataPath = req["file"].get<std::string>();
-      printf( ">>>dataPath = %s \n", dataPath.c_str());
-
-      evd(dataPath.c_str());
-   }
-};
 
 //=============================================================================
 // Message Queue stuff
@@ -191,7 +178,7 @@ void html_report(std::ostringstream &oss)
       v.reserve(g_children_map.size());
 
       oss << "{ 'total_sessions'=>" << N_tot_children << ", 'current_sessions'=>" << g_children_map.size() <<  ",\n";
-      oss << " 'table'=>'<style> table, th, td fapp{ border: 1px solid black; padding: 5px; } </style> <table>\n";
+      oss << " 'table'=>'<style> table, th, td { border: 1px solid black; padding: 5px; } </style> <table>\n";
       oss << "<tr><th>pid</th><th>dt_start[min]</th><th>N_conn</th><th>N_disconn</th><th>dt_last_mir[min]</th>"
           <<     "<th>dt_last_conn[min]</th><th>dt_last_dissconn [min]</th>"
           <<     "<th>user</th><th>log file</th></tr>\n";
@@ -396,10 +383,6 @@ void revetor()
    std::thread msgq_listener_thread(msgq_receiver_thread_foo);
 
    // ---------------------------------------------------------
-   // NEW
-    //gSystem->Load("libVsdDict.so");
-    gROOT->LoadMacro("evd.h");
-   //----------------------------------------------------------
 
    while (ACCEPT_NEW)
    {
@@ -607,26 +590,24 @@ void revetor()
             else
             {
                // We are the child and will reuse the socket to tell back where EVE dude has started.
-printf(">> child process starting \n");
+
                sigaction(SIGCHLD, &sa_chld, NULL);
                sigaction(SIGINT, &sa_int, NULL);
                sigaction(SIGTERM, &sa_term, NULL);
 
                // Close the server socket.
                ss->Close();
-printf(">> child process starting 1\n");
 
                // Close stdin, redirect stdout/err
-              // fclose(stdin);
-              // stdin = fopen("/dev/null", "r");
-              // dup2(fileno(stdin), 0);
+               fclose(stdin);
+               stdin = fopen("/dev/null", "r");
+               dup2(fileno(stdin), 0);
 
-               ///fclose(stdout);
-               // fclose(stderr);
+               fclose(stdout);
+               fclose(stderr);
 
                global_child_pid = getpid();
- printf(">> child process starting 2\n");
-
+ 
                char log_fname[128];
                snprintf(log_fname, 128, "%d%02d%02d-%02d%02d%02d-%d.log",
                         1900 + t.tm_year, 1 + t.tm_mon, t.tm_mday, t.tm_hour, t.tm_min, t.tm_sec,
@@ -645,8 +626,9 @@ printf(">> child process starting 1\n");
                dup2(fileno(stderr), 2);
                setlinebuf(stdout);
 
+               gROOT->LoadMacro("evd.h");
                std::string dataPath = req["file"].get<std::string>();
-               printf( ">>>dataPath = %s \n", dataPath.c_str());
+               printf( "dataPath = %s \n", dataPath.c_str());
                evd(dataPath.c_str());
 
                // Connection key
@@ -655,6 +637,7 @@ printf(">> child process starting 1\n");
                REX::gEve->GetWebWindow()->SetConnToken(con_key);
 
                auto url = REX::gEve->GetWebWindow()->GetUrl();
+               printf("URL %s \n", url.c_str());
                std::regex re("(\\w+)://([^:]+):(\\d+)/*(.*)");
                std::smatch m;
                std::regex_search(url, m, re);
@@ -675,7 +658,6 @@ printf(">> child process starting 1\n");
                std::cout << "close TSocket\n";
                s->Close();
                delete s;
-
                app.Run();
                // Start status report timer
                StatReportTimer stat_report_timer;
@@ -782,7 +764,7 @@ int main(int argc, char *argv[])
     else if (*i == "--port")
     {
          next_arg_or_die(mArgs, i);
-         std::cout << "convert to string \n " << *i << "\n";
+         std::cout << "convert t ostring \n " << *i << "\n";
          SERVICE_PORT = atoi(i->c_str());
          i++;
     }
