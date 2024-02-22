@@ -30,6 +30,7 @@
 #include <iostream>
 #include <fstream>
 
+#include "evd.h"
 
 static int SERVICE_PORT = 5555;
 static int MAX_SERVERS = 100;
@@ -44,48 +45,10 @@ struct EventDisplayInstance
 {
    void run(nlohmann::json &req)
    {
-      /*
-      std::string opath = gSystem->pwd();
-      std::string jsonPath = req["fwconfig"].get<std::string>();
-      printf( "jsonPath = %s \n", jsonPath.c_str());
-      //jsonPath = "/home/viz/universal-format/VsdNano/examples/nano.json";
-      std::ifstream ifs(jsonPath);
-      nlohmann::json j = nlohmann::json::parse(ifs);
       std::string dataPath = req["file"].get<std::string>();
-      printf( "dataPath = %s \n", dataPath.c_str());
-      // dataPath = "/home/viz/universal-format/VsdNano/nano-CMSSW_11_0_0-RelValZTT-mcRun.root";
-      auto file = TFile::Open(dataPath.c_str());
-      std::string hash = file->GetUUID().AsString();
-      auto tree = (TTree *)file->Get("Events");
-      std::string readerPath = Form("%s/%s", opath.c_str(), hash.c_str());
-      std::string readerPathMacro = readerPath + "/VsdReader.C";
-      if (gSystem->AccessPathName(readerPathMacro.c_str()))
-      {
-         printf("Creating class from TTree.\n");
-         gSystem->mkdir(readerPath.c_str());
-         gSystem->cd(readerPath.c_str());
-         tree->MakeClass("VsdReader");
-         gSystem->cd("..");
-      }
-      else
-      {
-         printf("reusing tree created class.\n");
-      }
-      gROOT->LoadMacro(readerPathMacro.c_str());
-      gROOT->LoadMacro("bootstrap.C");
-      TString cmd = TString::Format("bootstrap((TFile*)%p, (nlohmann::json*)%p)", file, &j);
-      // printf("CMD %s \n", cmd.Data());
-      gROOT->ProcessLine(cmd.Data());
-      gROOT->LoadMacro("evd.h");
-      gROOT->ProcessLine("evd()");
-      */
+      printf( ">>>dataPath = %s \n", dataPath.c_str());
 
-      std::string dataPath = req["file"].get<std::string>();
-      printf( "dataPath = %s \n", dataPath.c_str());
-
-      TString cmd = TString::Format("evd(%s)", dataPath.c_str());
-      gROOT->ProcessLine(cmd.Data());
-      //evd(dataPath.c_str());
+      evd(dataPath.c_str());
    }
 };
 
@@ -228,7 +191,7 @@ void html_report(std::ostringstream &oss)
       v.reserve(g_children_map.size());
 
       oss << "{ 'total_sessions'=>" << N_tot_children << ", 'current_sessions'=>" << g_children_map.size() <<  ",\n";
-      oss << " 'table'=>'<style> table, th, td { border: 1px solid black; padding: 5px; } </style> <table>\n";
+      oss << " 'table'=>'<style> table, th, td fapp{ border: 1px solid black; padding: 5px; } </style> <table>\n";
       oss << "<tr><th>pid</th><th>dt_start[min]</th><th>N_conn</th><th>N_disconn</th><th>dt_last_mir[min]</th>"
           <<     "<th>dt_last_conn[min]</th><th>dt_last_dissconn [min]</th>"
           <<     "<th>user</th><th>log file</th></tr>\n";
@@ -644,24 +607,26 @@ void revetor()
             else
             {
                // We are the child and will reuse the socket to tell back where EVE dude has started.
-
+printf(">> child process starting \n");
                sigaction(SIGCHLD, &sa_chld, NULL);
                sigaction(SIGINT, &sa_int, NULL);
                sigaction(SIGTERM, &sa_term, NULL);
 
                // Close the server socket.
                ss->Close();
+printf(">> child process starting 1\n");
 
                // Close stdin, redirect stdout/err
-               fclose(stdin);
-               stdin = fopen("/dev/null", "r");
-               dup2(fileno(stdin), 0);
+              // fclose(stdin);
+              // stdin = fopen("/dev/null", "r");
+              // dup2(fileno(stdin), 0);
 
-               fclose(stdout);
-               fclose(stderr);
+               ///fclose(stdout);
+               // fclose(stderr);
 
                global_child_pid = getpid();
- 
+ printf(">> child process starting 2\n");
+
                char log_fname[128];
                snprintf(log_fname, 128, "%d%02d%02d-%02d%02d%02d-%d.log",
                         1900 + t.tm_year, 1 + t.tm_mon, t.tm_mday, t.tm_hour, t.tm_min, t.tm_sec,
@@ -680,45 +645,10 @@ void revetor()
                dup2(fileno(stderr), 2);
                setlinebuf(stdout);
 
-               EventDisplayInstance evdInstance;
-               evdInstance.run(req);
-               // gROOT->LoadMacro("$ROOTSYS/tutorials/eve7/event_demo.C");
-               // gROOT->ProcessLine("event_demo()");
-/*
-               std::string opath = gSystem->pwd();
-               std::string jsonPath = req["fwconfig"].get<std::string>();
-               std::cout << "jsonPath " << jsonPath << "\n";
-               jsonPath = "/store/nano.json";
-               std::ifstream ifs(jsonPath);
-               nlohmann::json j = nlohmann::json::parse(ifs);
                std::string dataPath = req["file"].get<std::string>();
-               dataPath = "/store/nano.root";
-               std::cout << "data path " << dataPath << "\n";
-               auto file = TFile::Open(dataPath.c_str());
-               std::string hash = file->GetUUID().AsString();
-               auto tree = (TTree *)file->Get("Events");
-               std::string readerPath = Form("%s/%s", opath.c_str(), hash.c_str());
-               std::string readerPathMacro = readerPath + "/VsdReader.C";
-               if (gSystem->AccessPathName(readerPathMacro.c_str()))
-               {
-                  printf("Creating class from TTree.\n");
-                  gSystem->mkdir(readerPath.c_str());
-                  gSystem->cd(readerPath.c_str());
-                  tree->MakeClass("VsdReader");
-                  gSystem->cd("..");
-               }
-               else
-               {
-                  printf("reusing tree created class.\n");
-               }
-               gROOT->LoadMacro(readerPathMacro.c_str());
-               gROOT->LoadMacro("bootstrap.C");
-               TString cmd = TString::Format("bootstrap((TFile*)%p, (nlohmann::json*)%p)", file, &j);
-               // printf("CMD %s \n", cmd.Data());
-               gROOT->ProcessLine(cmd.Data());
-               gROOT->LoadMacro("evd.h");
-               gROOT->ProcessLine("evd()");
-*/
+               printf( ">>>dataPath = %s \n", dataPath.c_str());
+               evd(dataPath.c_str());
+
                // Connection key
                TRandom3 rnd(0);
                std::string con_key = RandomString(rnd, 16);
@@ -745,6 +675,7 @@ void revetor()
                std::cout << "close TSocket\n";
                s->Close();
                delete s;
+
                app.Run();
                // Start status report timer
                StatReportTimer stat_report_timer;
