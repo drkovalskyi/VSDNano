@@ -30,6 +30,7 @@
 #include <iostream>
 #include <fstream>
 
+
 static int SERVICE_PORT = 5555;
 static int MAX_SERVERS = 100;
 static int USER_TIMEOUT = 144000;
@@ -43,6 +44,7 @@ struct EventDisplayInstance
 {
    void run(nlohmann::json &req)
    {
+      /*
       std::string opath = gSystem->pwd();
       std::string jsonPath = req["fwconfig"].get<std::string>();
       printf( "jsonPath = %s \n", jsonPath.c_str());
@@ -76,6 +78,14 @@ struct EventDisplayInstance
       gROOT->ProcessLine(cmd.Data());
       gROOT->LoadMacro("evd.h");
       gROOT->ProcessLine("evd()");
+      */
+
+      std::string dataPath = req["file"].get<std::string>();
+      printf( "dataPath = %s \n", dataPath.c_str());
+
+      TString cmd = TString::Format("evd(%s)", dataPath.c_str());
+      gROOT->ProcessLine(cmd.Data());
+      //evd(dataPath.c_str());
    }
 };
 
@@ -423,6 +433,10 @@ void revetor()
    std::thread msgq_listener_thread(msgq_receiver_thread_foo);
 
    // ---------------------------------------------------------
+   // NEW
+    //gSystem->Load("libVsdDict.so");
+    gROOT->LoadMacro("evd.h");
+   //----------------------------------------------------------
 
    while (ACCEPT_NEW)
    {
@@ -837,7 +851,7 @@ int main(int argc, char *argv[])
     else if (*i == "--port")
     {
          next_arg_or_die(mArgs, i);
-         std::cout << "convert t ostring \n " << *i << "\n";
+         std::cout << "convert to string \n " << *i << "\n";
          SERVICE_PORT = atoi(i->c_str());
          i++;
     }

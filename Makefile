@@ -55,3 +55,5 @@ ${NANO_ROOT}:
 ## run event display
 evd: UserVsd.root libVsdDict.so
 	root.exe  -e 'gSystem->Load("libVsdDict.so")' 'evd.h("UserVsd.root")'
+service:
+	c++ `root-config --cflags` -fPIC  service.cc -L`root-config --libdir` -lROOTEve -lROOTWebDisplay -lCore -lRIO -lMathCore -lRint -lNet -o service
