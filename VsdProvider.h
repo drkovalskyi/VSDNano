@@ -92,6 +92,17 @@ public:
     void addCollection(VsdCollection *h)
     {
         m_collections.push_back(h);
+
+        if (h->m_purpose == "Jet")
+            h->m_color = kYellow;
+        if (h->m_purpose == "MET")
+            h->m_color = kRed;
+        if (h->m_purpose == "Muon")
+            h->m_color = kRed;
+        if (h->m_purpose == "Vertex")
+            h->m_color = kBlack;
+        if (h->m_purpose == "Candidate")
+            h->m_color = kGreen;
     }
 
     virtual void set_event_info()
