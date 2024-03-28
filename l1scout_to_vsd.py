@@ -78,7 +78,7 @@ def save_event(bx, muonCollection, jetCollection):
         jet = jetCollection.getBxObject(bx, i)
         vsd_jet = ROOT.VsdJet(demuxEt(jet.hwEt()), 
                               demuxEta(jet.hwEta()), 
-                              demuxPhi(muon.hwPhi()), 
+                              demuxPhi(jet.hwPhi()), 
                               0, 0.3, 0.3)
         vsd_jet.name = f"Jet_{i}"
         gjv.push_back(vsd_jet)
