@@ -1,4 +1,5 @@
 import ROOT
+import json
 
 ROOT.gSystem.Load("libVsdDict.so")
 
@@ -14,8 +15,16 @@ Vtree.Branch("GreenJets", gjv)
 tmv = ROOT.std.vector('VsdMET')()
 Vtree.Branch("TestMETs", tmv)
 
+
 umv = ROOT.std.vector('VsdMuon')()
-Vtree.Branch("UMuon", umv)
+mb = Vtree.Branch("UMuon", umv)
+muonCfg = {
+   "filter" : "i.pt() > 1",
+   "color" : ROOT.kViolet
+}
+mb.SetTitle(json.dumps(muonCfg))
+
+
 
 eiv = ROOT.std.vector('VsdEventInfo')()
 Vtree.Branch("EventInfo", eiv)

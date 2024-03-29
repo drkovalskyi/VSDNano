@@ -4,6 +4,8 @@
 #include "TVirtualCollectionProxy.h"
 #include "TBranchElement.h"
 #include "TPRegexp.h"
+#include "nlohmann/json.hpp"
+
 
 VsdProvider *g_provider = nullptr;
 VsdTree* g_vsdTree = nullptr; // temporary, but piggish AMT!!!
@@ -80,9 +82,28 @@ public:
                 printf("  post get entry 0 %s %u\n",
                        br->GetName(), cp->Size());
 
-                // Old!
                 std::string purpose = re[1].Data();
-                addCollection(new VsdCollection(br->GetName(), purpose.substr(3)));
+                VsdCollection* vc = new VsdCollection(br->GetName(), purpose.substr(3));
+                addCollection(vc);
+                try
+                {
+                    nlohmann::json data = nlohmann::json::parse(br->GetTitle());
+                    std::cout << data.dump(3) << "\n";
+                    for (auto &el : data.items())
+                    {
+                        std::cout << "key: " << el.key() << ", value:" << el.value() << '\n';
+                        if (el.key() == "filter") {
+                            vc->m_filter = el.value();
+                        }
+                        if (el.key() == "color") {
+                            vc->m_color = el.value();
+                        }
+                    }
+                }
+                catch (nlohmann::json::parse_error &ex)
+                {
+                    std::cerr << "parse error  "<< br->GetTitle() << " at byte " << ex.byte << std::endl;
+                }
             }
         }
 
