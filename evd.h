@@ -5,6 +5,7 @@
 #include "ROOT/REveDataCollection.hxx"
 #include "ROOT/REveDataSimpleProxyBuilderTemplate.hxx"
 #include "ROOT/REveManager.hxx"
+#include "ROOT/RWebWindowsManager.hxx"
 #include "ROOT/REveScalableStraightLineSet.hxx"
 //#include "ROOT/REveViewContext.hxx"
 #include <ROOT/REveGeoShape.hxx>
@@ -383,7 +384,7 @@ class EventManager : public REveElement
 private:
    CollectionManager    *m_collectionMng{nullptr};
    VsdProvider          *m_event{nullptr};
-   std::chrono::duration<double> m_deltaTime{1};
+   std::chrono::duration<double> m_deltaTime;
    std::thread *m_timerThread{nullptr};
    std::mutex m_mutex;
    std::condition_variable m_CV;
@@ -391,7 +392,7 @@ private:
    
 
 public:
-   EventManager(CollectionManager* m, VsdProvider* e):REveElement("EventManager") {m_collectionMng  = m; m_event = e; m_deltaTime = std::chrono::milliseconds(500);}
+   EventManager(CollectionManager* m, VsdProvider* e):REveElement("EventManager") {m_collectionMng  = m; m_event = e;m_deltaTime = std::chrono::milliseconds(1000);}
    virtual ~EventManager() {}
 
    virtual void GotoEvent(int id)  
@@ -503,9 +504,9 @@ public:
       }
    }
 
-   void playdelay(float x)
+   void playdelay(int x)
    {
-      printf("playdelay %f\n", x);
+      printf(">>>>> playdelay %d\n", x);
       std::unique_lock<std::mutex> lock{m_mutex};
       m_deltaTime = std::chrono::milliseconds(int(x));
       StampObjProps();
@@ -617,10 +618,15 @@ void createScenesAndViews()
 ////////////////////////////////////////////////////
 void evd(const char* data_path)
 {
+
+
    VsdProvider* prov = new VsdProvider(data_path);
    eveMng = REveManager::Create();
 
-//  ROOT::Experimental::gEve->GetWebWindow()->SetClientVersion("33.3");
+
+	   ROOT::RWebWindowsManager::SetLoopbackMode(false);
+	      ROOT::Experimental::gEve->GetWebWindow()->SetRequireAuthKey(false); 
+    ROOT::Experimental::gEve->GetWebWindow()->SetClientVersion("10.1");
     std::string locPath = "ui5";
     eveMng->AddLocation("unidir/", locPath);
     eveMng->SetDefaultHtmlPage("file:unidir/eventDisplay.html");

@@ -159,8 +159,9 @@ let pthis = this;
       },
 
       playdelay: function (oEvent) {
-         console.log("playdelay ", oEvent.getParameters());
-         this.mgr.SendMIR("playdelay(" + oEvent.getParameter("value") + ")", this.fw2gui.fElementId, "EventManager");
+         console.log("playdelay ", oEvent.getParameter("value"));
+         let pd_milisec = oEvent.getParameter("value") * 1000;
+         this.mgr.SendMIR("playdelay(" + pd_milisec + ")", this.fw2gui.fElementId, "EventManager");
       },
 
    });
