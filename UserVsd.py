@@ -3,7 +3,7 @@ import json
 
 ROOT.gSystem.Load("libVsdDict.so")
 
-Vfile = ROOT.TFile("UserVsd-2.root", "RECREATE")
+Vfile = ROOT.TFile("UserVsd.root", "RECREATE")
 Vtree = ROOT.TTree("VSD", "Custom plain VSD tree")
 
 pcv = ROOT.std.vector('VsdCandidate')()
