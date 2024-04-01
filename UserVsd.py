@@ -7,7 +7,32 @@ Vfile = ROOT.TFile("UserVsd-2.root", "RECREATE")
 Vtree = ROOT.TTree("VSD", "Custom plain VSD tree")
 
 pcv = ROOT.std.vector('VsdCandidate')()
-Vtree.Branch("PinkCands", pcv)
+candBr = Vtree.Branch("PinkCands", pcv)
+candCfg = {
+   "filter" : "i.pt() > 1",
+   "color" : ROOT.kViolet,
+   "purpose" : "Candidate"
+}
+candBr.SetTitle(json.dumps(candCfg))
+
+# resue cand vectir for ECAL
+ecalBr = Vtree.Branch("ChargedCands", pcv)
+ecalCfg = {
+   "color" : ROOT.kRed,
+   "filter" : "i.charge() != 0",
+   "purpose" : "CaloTower"
+}
+ecalBr.SetTitle(json.dumps(ecalCfg))
+# resue cand vectir for HCAL
+hcalBr = Vtree.Branch("NeutralCands", pcv)
+hcalCfg = {
+   "color" : ROOT.kBlue,
+   "filter" : "i.charge() > 0",
+   "purpose" : "CaloTower"
+}
+hcalBr.SetTitle(json.dumps(hcalCfg))
+
+
 
 gjv = ROOT.std.vector('VsdJet')()
 Vtree.Branch("GreenJets", gjv)

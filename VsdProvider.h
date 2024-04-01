@@ -82,8 +82,8 @@ public:
                 printf("  post get entry 0 %s %u\n",
                        br->GetName(), cp->Size());
 
-                std::string purpose = re[1].Data();
-                VsdCollection* vc = new VsdCollection(br->GetName(), purpose.substr(3));
+                std::string colType = re[1].Data();
+                VsdCollection* vc = new VsdCollection(br->GetName(), colType.substr(3));
                 addCollection(vc);
                 try
                 {
@@ -97,6 +97,9 @@ public:
                         }
                         if (el.key() == "color") {
                             vc->m_color = el.value();
+                        }
+                        if (el.key() == "purpose") {
+                            vc->m_purpose = el.value();
                         }
                     }
                 }

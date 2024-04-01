@@ -1,6 +1,8 @@
 #include "VsdBase.h"
+#include "lego_bins.h"
 
 #include "TROOT.h"
+#include "TH2.h"
 #include "ROOT/REveDataCollection.hxx"
 #include "ROOT/REveDataSimpleProxyBuilderTemplate.hxx"
 #include "ROOT/REveManager.hxx"
@@ -22,6 +24,9 @@
 #include "ROOT/REveTrans.hxx"
 #include "ROOT/REveGeoShape.hxx"
 #include "ROOT/REveBox.hxx"
+#include "ROOT/REveCalo.hxx"
+#include "ROOT/REveCaloData.hxx"
+#include "ROOT/REveSelection.hxx"
 #include "TGeoBBox.h"
 #include "TGeoTube.h"
 
@@ -286,6 +291,7 @@ public:
          REveGeoManagerHolder gmgr(REveGeoShape::GetGeoManager());
          REveGeoShape *element = getShape("spread", new TGeoTubeSeg(r0 - 2, r0, 1, min_phi * 180 / M_PI, max_phi * 180 / M_PI), 0);
          element->SetPickable(kTRUE);
+         element->SetMainTransparency(90);
          SetupAddElement(element, iItemHolder);
       }
       // float value = met.et();
@@ -585,7 +591,141 @@ class JetProxyBuilder : public REveDataSimpleProxyBuilderTemplate<VsdJet>
 };
 
 //==============================================================================
+class REveCaloTowerSliceSelector : public REveCaloDataSliceSelector
+{
+private:
+   REveDataCollection* fCollection{nullptr};
+   REveCaloDataHist*   fCaloData{nullptr};
+
+public:
+   REveCaloTowerSliceSelector(int s, REveDataCollection* c, REveCaloDataHist* h):REveCaloDataSliceSelector(s), fCollection(c), fCaloData(h) {}
+
+   using REveCaloDataSliceSelector::ProcessSelection;
+   void ProcessSelection(REveCaloData::vCellId_t& sel_cells, UInt_t selectionId, Bool_t multi) override
+   {
+      std::set<int> item_set;
+      REveCaloData::CellData_t cd;
+      for (auto &cellId : sel_cells)
+      {
+         fCaloData->GetCellData(cellId, cd);
+
+         // loop over enire collection and check its eta/phi range
+         for (int t = 0; t < fCollection->GetNItems(); ++t)
+         {
+            VsdCandidate* tower = (VsdCandidate*) fCollection->GetDataPtr(t);
+            if (tower->m_eta > cd.fEtaMin && tower->m_eta < cd.fEtaMax &&
+                tower->m_phi > cd.fPhiMin && tower->m_phi < cd.fPhiMax)
+                {
+                  printf("selected item %d ...\n", t);
+               item_set.insert(t);
+                }
+         }
+      }
+      REveSelection* sel = (REveSelection*)ROOT::Experimental::gEve->FindElementById(selectionId);
+      fCollection->GetItemList()->RefSelectedSet() = item_set;
+      sel->NewElementPicked(fCollection->GetItemList()->GetElementId(),  multi, true, item_set);
+   }
+
+   using REveCaloDataSliceSelector::GetCellsFromSecondaryIndices;
+   void GetCellsFromSecondaryIndices(const std::set<int>& idcs, REveCaloData::vCellId_t& out) override
+   {
+      TH2F* hist  =  fCaloData->GetHist(GetSliceIndex());
+      std::set<int> cbins;
+      float total = 0;
+      for( auto &i : idcs ) {
+         VsdCandidate* tower = (VsdCandidate*)fCollection->GetDataPtr(i);
+         int bin = hist->FindBin(tower->m_eta, tower->m_phi);
+         float frac =  tower->m_pt/hist->GetBinContent(bin);
+         bool ex = false;
+         for (size_t ci = 0; ci < out.size(); ++ci)
+         {
+            if (out[ci].fTower == bin && out[ci].fSlice == GetSliceIndex())
+            {
+               float oldv =  out[ci].fFraction;
+               out[ci].fFraction = oldv + frac;
+               ex = true;
+               break;
+            }
+         }
+         if (!ex) {
+            out.push_back(REveCaloData::CellId_t(bin, GetSliceIndex(), frac));
+         }
+      }
+   }
+};
 
 //==============================================================================
 
+class CaloTowerProxyBuilder: public REveDataProxyBuilderBase
+{
+private:
+   REveCaloDataHist* fCaloData {nullptr};
+   TH2F*             fHist {nullptr};
+   int               fSliceIndex {-1};
+
+   void assertSlice() {
+      if (!fHist) {
+         Bool_t status = TH1::AddDirectoryStatus();
+
+         TH1::AddDirectory(kFALSE);  //Keeps histogram from going into memory
+         fHist = new TH2F("caloHist", "caloHist", fw3dlego::xbins_n - 1, fw3dlego::xbins, 72, -M_PI, M_PI);
+         TH1::AddDirectory(status);
+         fSliceIndex = fCaloData->AddHistogram(fHist);
+
+         fCaloData->RefSliceInfo(fSliceIndex)
+            .Setup(Collection()->GetCName(),
+                   0.,
+                   Collection()->GetMainColor(),
+                   Collection()->GetMainTransparency());
+
+         fCaloData->GetSelector()->AddSliceSelector(std::unique_ptr<REveCaloDataSliceSelector>
+                                                    (new REveCaloTowerSliceSelector(fSliceIndex, Collection(), fCaloData)));
+      }
+   }
+public:
+   CaloTowerProxyBuilder(REveCaloDataHist* cd) : fCaloData(cd) {}
+
+   using REveDataProxyBuilderBase::Build;
+   void BuildProduct(const REveDataCollection* collection, REveElement* product, const REveViewContext*)override
+   {
+      assertSlice();
+      fHist->Reset();
+      if (collection->GetRnrSelf())
+      {
+         fCaloData->RefSliceInfo(fSliceIndex)
+            .Setup(Collection()->GetCName(),
+                   0.,
+                   Collection()->GetMainColor(),
+                   Collection()->GetMainTransparency());
+
+
+         for (int h = 0; h < collection->GetNItems(); ++h)
+         {
+            VsdCandidate* tower = (VsdCandidate*)collection->GetDataPtr(h);
+            const REveDataItem* item = Collection()->GetDataItem(h);
+
+            if (!item->GetVisible())
+               continue;
+            fHist->Fill(tower->m_eta, tower->m_phi, tower->m_pt);
+         }
+      }
+      fCaloData->DataChanged();
+   }
+
+   using REveDataProxyBuilderBase::FillImpliedSelected;
+   void FillImpliedSelected(REveElement::Set_t& impSet, const std::set<int>& sec_idcs, Product*) override
+   {
+      fCaloData->GetSelector()->SetActiveSlice(fSliceIndex);
+      impSet.insert(fCaloData);
+      fCaloData->FillImpliedSelectedSet(impSet, sec_idcs);
+   }
+
+  using REveDataProxyBuilderBase::ModelChanges;
+   void ModelChanges(const REveDataCollection::Ids_t& ids, Product* product) override
+   {
+      BuildProduct(Collection(), nullptr, nullptr);
+   }
+
+}; // CaloTowerProxyBuilder
+//.....................................................
 //==============================================================================

@@ -155,7 +155,9 @@ public:
 class VsdCollection
 {
 public:
-   VsdCollection(const std::string &n, const std::string &p, Color_t c = kBlue, std::string f = "") : m_name(n), m_purpose(p), m_color(c), m_filter(f) {}
+   VsdCollection(const std::string &n, const std::string &p, Color_t c = kBlue, std::string f = "") : m_name(n), m_type(p), m_color(c), m_filter(f) {
+      m_purpose = m_type;
+   }
 
    VsdCollection() {}
    virtual ~VsdCollection() {}
