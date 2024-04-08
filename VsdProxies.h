@@ -27,6 +27,7 @@
 #include "ROOT/REveCalo.hxx"
 #include "ROOT/REveCaloData.hxx"
 #include "ROOT/REveSelection.hxx"
+#include "ROOT/REveVector.hxx"
 #include "TGeoBBox.h"
 #include "TGeoTube.h"
 
@@ -317,7 +318,7 @@ class CandidateProxyBuilder : public REveDataSimpleProxyBuilderTemplate<VsdCandi
 
       REveRecTrack t;
       t.fBeta = 1.;
-      t.fV = REveVector(); // iData.vx(), iData.vy(), iData.vz());
+      t.fV = REveVector(cand.posX(), cand.posY(), cand.posZ()); // iData.vx(), iData.vy(), iData.vz());
       t.fP = REveVector(px, py, pz);
       t.fSign = cand.m_charge;
       REveTrack *track = new REveTrack(&t, context->GetPropagator());
@@ -529,6 +530,8 @@ class JetProxyBuilder : public REveDataSimpleProxyBuilderTemplate<VsdJet>
       jet->SetTitle(Form("jet [%d] pt = %f\n", idx, dj.pt()));
       // printf("make jet %d pt == %f\n", idx, dj.pt());
       //printf("make xxx jet %d pt == %f\n", idx, xxx->pt());
+      REveVector av(dj.posX(), dj.posY(), dj.posZ());
+      jet->SetApex(av);
 
       static const float_t offr = 5;
       float r_ecal = context->GetMaxR() + offr;

@@ -50,6 +50,7 @@ class VsdCandidate : public VsdBase
 public:
    // ROOT::Math::Polar3DPoint momentum;
    float m_eta{0.f}; float m_phi{0.f}; float m_pt{0.f};
+   float m_posX{0.f}; float m_posY{0.f}; float m_posZ{0.f};
    int m_charge{0};
 
 public:
@@ -64,10 +65,16 @@ public:
    float pt() const { return m_pt; }
    float charge() const { return m_charge; }
 
+   float posX() const { return m_posX;}
+   float posY() const { return m_posY;}
+   float posZ() const { return m_posZ;}
+
    void setPt(float x) { m_pt = x;}
    void setEta(float x) { m_eta = x;}
    void setPhi(float x) { m_phi = x;}
    void setCharge(float x) { m_charge = x;}
+
+   void setPos(float ix, float iy, float iz) {m_posX = ix, m_posY = iy, m_posZ = iz;}
 
    void dump() { printf("VsdCanidate pt = %f, charge = %d \n", m_pt, m_charge); }
 };
