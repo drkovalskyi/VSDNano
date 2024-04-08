@@ -70,6 +70,7 @@ for i in range(10):
             ROOT.gRandom.Uniform(-ROOT.TMath.Pi(), ROOT.TMath.Pi()),
             (1 if ROOT.gRandom.Rndm() > 0.5 else -1))
         cnd.name = f"Candidate_{j}"
+        cnd.setPos(ROOT.gRandom.Uniform(0.1, 20),ROOT.gRandom.Uniform(0.1, 20), ROOT.gRandom.Uniform(0.1, 20))
         pcv.push_back(cnd)
 
     for j in range(3 + ROOT.gRandom.Integer(6)):
@@ -81,6 +82,7 @@ for i in range(10):
             ROOT.gRandom.Uniform(0.1, 0.9),
             ROOT.gRandom.Uniform(0.05, 1))
         jet.name = f"Jet_{j}"
+        jet.setPos(ROOT.gRandom.Uniform(0.1, 20),ROOT.gRandom.Uniform(0.1, 20), ROOT.gRandom.Uniform(0.1, 20))
         gjv.push_back(jet)
 
     for j in range( 1 ):
