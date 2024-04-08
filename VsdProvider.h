@@ -88,10 +88,10 @@ public:
                 try
                 {
                     nlohmann::json data = nlohmann::json::parse(br->GetTitle());
-                    std::cout << data.dump(3) << "\n";
+                    // std::cout << data.dump(3) << "\n";
                     for (auto &el : data.items())
                     {
-                        std::cout << "key: " << el.key() << ", value:" << el.value() << '\n';
+                        // std::cout << "key: " << el.key() << ", value:" << el.value() << '\n';
                         if (el.key() == "filter") {
                             vc->m_filter = el.value();
                         }
