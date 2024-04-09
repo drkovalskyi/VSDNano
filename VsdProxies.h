@@ -363,7 +363,7 @@ public:
 
       REveRecTrack t;
       t.fBeta = 1.;
-      t.fV = REveVector(); // iData.vx(), iData.vy(), iData.vz());
+      t.fV = REveVector(muon.posX(), muon.posY(), muon.posZ());
       t.fP = REveVector(px, py, pz);
       t.fSign = muon.m_charge;
 
