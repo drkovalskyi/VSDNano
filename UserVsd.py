@@ -3,11 +3,36 @@ import json
 
 ROOT.gSystem.Load("libVsdDict.so")
 
-Vfile = ROOT.TFile("UserVsd-2.root", "RECREATE")
+Vfile = ROOT.TFile("UserVsd.root", "RECREATE")
 Vtree = ROOT.TTree("VSD", "Custom plain VSD tree")
 
 pcv = ROOT.std.vector('VsdCandidate')()
-Vtree.Branch("PinkCands", pcv)
+candBr = Vtree.Branch("PinkCands", pcv)
+candCfg = {
+   "filter" : "i.pt() > 1",
+   "color" : ROOT.kViolet,
+   "purpose" : "Candidate"
+}
+candBr.SetTitle(json.dumps(candCfg))
+
+# resue cand vectir for ECAL
+ecalBr = Vtree.Branch("ChargedCands", pcv)
+ecalCfg = {
+   "color" : ROOT.kRed,
+   "filter" : "i.charge() != 0",
+   "purpose" : "CaloTower"
+}
+ecalBr.SetTitle(json.dumps(ecalCfg))
+# resue cand vectir for HCAL
+hcalBr = Vtree.Branch("NeutralCands", pcv)
+hcalCfg = {
+   "color" : ROOT.kBlue,
+   "filter" : "i.charge() > 0",
+   "purpose" : "CaloTower"
+}
+hcalBr.SetTitle(json.dumps(hcalCfg))
+
+
 
 gjv = ROOT.std.vector('VsdJet')()
 Vtree.Branch("GreenJets", gjv)
@@ -45,6 +70,7 @@ for i in range(10):
             ROOT.gRandom.Uniform(-ROOT.TMath.Pi(), ROOT.TMath.Pi()),
             (1 if ROOT.gRandom.Rndm() > 0.5 else -1))
         cnd.name = f"Candidate_{j}"
+        cnd.setPos(ROOT.gRandom.Uniform(0.1, 20),ROOT.gRandom.Uniform(0.1, 20), ROOT.gRandom.Uniform(0.1, 20))
         pcv.push_back(cnd)
 
     for j in range(3 + ROOT.gRandom.Integer(6)):
@@ -56,6 +82,7 @@ for i in range(10):
             ROOT.gRandom.Uniform(0.1, 0.9),
             ROOT.gRandom.Uniform(0.05, 1))
         jet.name = f"Jet_{j}"
+        jet.setPos(ROOT.gRandom.Uniform(0.1, 20),ROOT.gRandom.Uniform(0.1, 20), ROOT.gRandom.Uniform(0.1, 20))
         gjv.push_back(jet)
 
     for j in range( 1 ):

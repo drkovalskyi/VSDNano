@@ -1,6 +1,7 @@
 #include "VsdBase.h"
 #include "VsdProxies.h"
 #include "VsdProvider.h"
+#include "lego_bins.h"
 
 #include "ROOT/REveDataCollection.hxx"
 #include "ROOT/REveDataSimpleProxyBuilderTemplate.hxx"
@@ -43,7 +44,7 @@ ROOT::Experimental::REveProjectionManager* mngRhoZ;
 ROOT::Experimental::REveProjectionManager* mngRPhi;
 ROOT::Experimental::REveViewContext* viewContext;
 ROOT::Experimental::REveTrackPropagator* muonPropagator_g;
-
+ROOT::Experimental::REveCaloDataHist* caloData;
 //==============================================================================
 //== Selection =================================================================
 //==============================================================================
@@ -238,6 +239,8 @@ public:
             return new MuonProxyBuilder();
         else if (vsdc->m_purpose == "Vertex")
             return new VertexProxyBuilder();
+        else if (vsdc->m_purpose == "CaloTower")
+            return new CaloTowerProxyBuilder(caloData);
 
         std::cout << typeid(vsdc).name() << '\n';
 
@@ -254,7 +257,7 @@ public:
     {
         REveDataCollection *collection = new REveDataCollection(vsdc->m_name);
         m_collections->AddElement(collection);
-        std::string class_name = "Vsd" + vsdc->m_purpose; // !!! This works beacuse it is a root macro
+        std::string class_name = "Vsd" + vsdc->m_type; // !!! This works beacuse it is a root macro
 
         std::cout << "addCollection class name " << class_name << "\n";
 
@@ -400,6 +403,7 @@ public:
       m_event->GotoEvent(id);
       UpdateTitle();
       m_collectionMng->RenewEvent();
+      caloData->DataChanged();
    }
 
 
@@ -567,6 +571,20 @@ void createScenesAndViews()
 
    viewContext->SetTableViewInfo(tableInfo);
 
+
+    auto baseHist = new TH2F("dummy", "dummy", fw3dlego::xbins_n - 1, fw3dlego::xbins, 72, -TMath::Pi(), TMath::Pi());
+    caloData = new REveCaloDataHist();
+    caloData->AddHistogram(baseHist);
+    auto selector = new REveCaloDataSelector();
+    caloData->SetSelector(selector);
+    eveMng->GetWorld()->AddElement(caloData);
+
+   auto calo3d = new REveCalo3D(caloData);
+   calo3d->SetBarrelRadius(r);
+   calo3d->SetEndCapPos(z);
+   calo3d->SetMaxTowerH(300);
+   eveMng->GetEventScene()->AddElement(calo3d);
+
    // Geom  ry
    auto b1 = new REveGeoShape("Barrel 1");
    b1->SetShape(new TGeoTube(r -2 , r+2, z));
@@ -586,6 +604,7 @@ void createScenesAndViews()
       auto pgeoScene = eveMng->SpawnNewScene("Projection Geometry");
       mngRPhi->ImportElements(b1,pgeoScene );
       rPhiView->AddScene(pgeoScene);
+      mngRPhi->ImportElements(calo3d, rPhiEventScene);
    }
    // Projected RhoZ
    if (1)
@@ -600,6 +619,7 @@ void createScenesAndViews()
       auto pgeoScene = eveMng->SpawnNewScene("Projection Geometry");
       mngRhoZ->ImportElements(b1,pgeoScene );
       rhoZView->AddScene(pgeoScene);
+      mngRhoZ->ImportElements(calo3d, rhoZEventScene);
    }
       // collections
    eveMng->SpawnNewScene("Collections", "Collections");
@@ -612,14 +632,12 @@ void createScenesAndViews()
       tableScene->AddElement(viewContext->GetTableViewInfo());
    }
 
-   // ((REveViewer*)(eveMng->GetViewers()->FirstChild()))->SetMandatory(false);
+    ((REveViewer*)(eveMng->GetViewers()->FirstChild()))->SetMandatory(false);
 }
 ////////////////////////////////////////////////////
 ////////////////////////////////////////////////////
 void evd(const char* data_path)
 {
-
-
    VsdProvider* prov = new VsdProvider(data_path);
    eveMng = REveManager::Create();
 
@@ -638,14 +656,8 @@ void evd(const char* data_path)
 
    auto eventMng = new EventManager(collectionMng, prov);
    eventMng->UpdateTitle();
-   // eventMng->SetName(prov->GetFile()->GetName());
+   eventMng->SetName(data_path);
 
-  TString name = prov->m_title;
-  int l = name.Last('/');
-  if (l != kNPOS)
-      name.Remove(0, l + 1);
-
-  eventMng->SetName(name.Data());
   auto massDialog = new InvMassDialog();
   eventMng->AddElement(massDialog);
   eveMng->GetWorld()->AddElement(eventMng);
@@ -662,7 +674,7 @@ void evd(const char* data_path)
    }
    eventMng->GotoEvent(0);
 
-   ((REveViewer*)(ROOT::Experimental::gEve->GetViewers()->FirstChild()))->SetMandatory(false);
+   //((REveViewer*)(ROOT::Experimental::gEve->GetViewers()->FirstChild()))->SetMandatory(false);
 
    gEnv->SetValue("WebEve.DisableShow", 1);
    eveMng->Show();

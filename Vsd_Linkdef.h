@@ -1,3 +1,4 @@
+// simple changes are supported with automatic schema evolution
 #pragma link off all globals;
 #pragma link off all classes;
 #pragma link off all functions;

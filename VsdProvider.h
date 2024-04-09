@@ -82,21 +82,24 @@ public:
                 printf("  post get entry 0 %s %u\n",
                        br->GetName(), cp->Size());
 
-                std::string purpose = re[1].Data();
-                VsdCollection* vc = new VsdCollection(br->GetName(), purpose.substr(3));
+                std::string colType = re[1].Data();
+                VsdCollection* vc = new VsdCollection(br->GetName(), colType.substr(3));
                 addCollection(vc);
                 try
                 {
                     nlohmann::json data = nlohmann::json::parse(br->GetTitle());
-                    std::cout << data.dump(3) << "\n";
+                    // std::cout << data.dump(3) << "\n";
                     for (auto &el : data.items())
                     {
-                        std::cout << "key: " << el.key() << ", value:" << el.value() << '\n';
+                        // std::cout << "key: " << el.key() << ", value:" << el.value() << '\n';
                         if (el.key() == "filter") {
                             vc->m_filter = el.value();
                         }
                         if (el.key() == "color") {
                             vc->m_color = el.value();
+                        }
+                        if (el.key() == "purpose") {
+                            vc->m_purpose = el.value();
                         }
                     }
                 }
