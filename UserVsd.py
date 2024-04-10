@@ -116,6 +116,16 @@ for i in range(10):
             ROOT.gRandom.Uniform(-0.5, 0.5),
             ROOT.gRandom.Uniform(-2.5, 2.5))
         vert.name = f"Vertex_{j}"
+        vert.setErr(0, 0, ROOT.gRandom.Uniform(5 * 0.001, 2* 0.001))
+        vert.setErr(1, 1, ROOT.gRandom.Uniform(5 * 0.001, 2* 0.001))
+        vert.setErr(2, 2, ROOT.gRandom.Uniform(5 * 0.001, 2* 0.001))
+
+        # vert.setErr(0, 1, ROOT.gRandom.Uniform(1.5 * 0.001, 2* 0.001))
+       # vert.setErr(1, 0, vert.getErr(0,1))
+       # vert.setErr(0, 2, ROOT.gRandom.Uniform(1.5 * 0.001, 2* 0.001))
+        #vert.setErr(2, 0, vert.getErr(0,2))
+        #vert.setErr(1, 2, ROOT.gRandom.Uniform(1.5 * 0.001, 2* 0.001))
+        #vert.setErr(2, 1, vert.getErr(1,2))
         vertv.push_back(vert)
 
     ei = ROOT.VsdEventInfo(333, 7777, i+1000)
