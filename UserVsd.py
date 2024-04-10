@@ -54,6 +54,8 @@ mb.SetTitle(json.dumps(muonCfg))
 eiv = ROOT.std.vector('VsdEventInfo')()
 Vtree.Branch("EventInfo", eiv)
 
+vertv = ROOT.std.vector('VsdVertex')()
+vertBr = Vtree.Branch("ErrVertex", vertv)
 
 for i in range(10):
 
@@ -62,6 +64,7 @@ for i in range(10):
     tmv.clear()
     umv.clear()
     eiv.clear() # could be reused since it is a single object per event
+    vertv.clear()
 
     for j in range(10 + ROOT.gRandom.Integer(11)):
         cnd = ROOT.VsdCandidate(
@@ -101,8 +104,20 @@ for i in range(10):
             ROOT.gRandom.Uniform(-ROOT.TMath.Pi(), ROOT.TMath.Pi()),
             (1 if ROOT.gRandom.Rndm() > 0.5 else -1))
         muon.name = f"Muon_{j}"
+        muon.setPos(ROOT.gRandom.Uniform(0.1, 20),ROOT.gRandom.Uniform(0.1, 20), ROOT.gRandom.Uniform(0.1, 20))
         umv.push_back(muon)
     
+    ei = ROOT.VsdEventInfo(333, 7777, i+1000)
+    eiv.push_back(ei);
+
+    for j in range(4):
+        vert = ROOT.VsdVertex(
+            ROOT.gRandom.Uniform(0.1, 0.10),
+            ROOT.gRandom.Uniform(-0.5, 0.5),
+            ROOT.gRandom.Uniform(-2.5, 2.5))
+        vert.name = f"Vertex_{j}"
+        vertv.push_back(vert)
+
     ei = ROOT.VsdEventInfo(333, 7777, i+1000)
     eiv.push_back(ei);
 

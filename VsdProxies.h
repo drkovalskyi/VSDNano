@@ -1,5 +1,6 @@
 #include "VsdBase.h"
 #include "lego_bins.h"
+#include "FWDataCollection.h"
 
 #include "TROOT.h"
 #include "TH2.h"
@@ -123,6 +124,11 @@ public:
    using REveDataSimpleProxyBuilderTemplate<VsdVertex>::BuildItem;
    virtual void BuildItem(const VsdVertex &iData, int iIndex, REveElement *iItemHolder, const REveViewContext *vc) override
    {
+      auto item = dynamic_cast<FWDataCollection *>(Collection());
+      long markerSize = item->getLongParameter("MarkerSize");
+      bool drawEllipse = item->getBoolParameter("DrawEllipse");
+
+
     /*
       reco::Vertex::Error e = iData.error();
 
@@ -170,7 +176,7 @@ public:
       ps->SetMainColor(kGreen + 10);
       ps->SetNextPoint(iData.x(), iData.y(), iData.z());
       ps->SetMarkerStyle(4);
-      ps->SetMarkerSize(4);
+      ps->SetMarkerSize(markerSize);
       SetupAddElement(ps, iItemHolder );
 
 /*

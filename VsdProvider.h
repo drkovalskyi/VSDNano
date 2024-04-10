@@ -131,7 +131,7 @@ public:
 
     virtual void set_event_info()
     {
-        printf("vsd provider %lld events total %lld !!!!! \n", m_eventIdx, GetNumEvents());
+        // printf("vsd provider %lld events total %lld !!!!! \n", m_eventIdx, GetNumEvents());
         m_eventInfo = VsdEventInfo(9999, 9999, m_eventIdx);
 
         for (auto &vsdc : m_collections)
@@ -172,10 +172,10 @@ public:
 
         for (auto &&[name, cbi] : cmap)
         {
-            printf("  Trying to read %s\n", name.c_str());
-            printf("    pre get branch entry size = %u\n", cbi.m_proxy->Size());
+            // printf("  Trying to read %s\n", name.c_str());
+            // printf("    pre get branch entry size = %u\n", cbi.m_proxy->Size());
             cbi.m_branch->GetEntry(eventIdx);
-            printf("    size = %u\n", cbi.m_proxy->Size());
+            // printf("    size = %u\n", cbi.m_proxy->Size());
 
             VsdCollection *vc = RefColl(name);
             vc->m_list.clear();

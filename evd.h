@@ -1,6 +1,7 @@
 #include "VsdBase.h"
 #include "VsdProxies.h"
 #include "VsdProvider.h"
+#include "FWDataCollection.h"
 #include "lego_bins.h"
 
 #include "ROOT/REveDataCollection.hxx"
@@ -178,7 +179,6 @@ class InvMassDialog : public REveElement
 //==============================================================================
 //== Collection Manager =============================================================
 //==============================================================================
-
 class CollectionManager
 {
 private:
@@ -200,7 +200,7 @@ public:
         rdc->ClearItems();
         VsdCollection *vsdc = m_event->RefColl(rdc->GetName());
         std::string cname = rdc->GetName();
-        printf("-------- LoadCurrentEventInCollection %s size %lu\n", rdc->GetCName(), vsdc->m_list.size());
+        // printf("-------- LoadCurrentEventInCollection %s size %lu\n", rdc->GetCName(), vsdc->m_list.size());
         std::string t = "dummy";
         for (auto vsd : vsdc->m_list)
         {
@@ -255,11 +255,11 @@ public:
     void
     addCollection(VsdCollection *vsdc)
     {
-        REveDataCollection *collection = new REveDataCollection(vsdc->m_name);
+        FWDataCollection *collection = new FWDataCollection(vsdc->m_name);
         m_collections->AddElement(collection);
         std::string class_name = "Vsd" + vsdc->m_type; // !!! This works beacuse it is a root macro
 
-        std::cout << "addCollection class name " << class_name << "\n";
+        // std::cout << "addCollection class name " << class_name << "\n";
 
         TClass* tc  = TClass::GetClass(class_name.c_str());
         if (!tc) {
@@ -268,6 +268,14 @@ public:
             tc  = TClass::GetClass(class_name.c_str());
             if (!tc)
             throw( std::runtime_error("addCollection " +  vsdc->m_name ) );
+        }
+
+        if (class_name == "VsdVertex")
+        {
+            nlohmann::json so = { {"val", false}, {"type", "Bool"}, {"name" , "DrawEllipse"} };
+            collection->m_config.push_back(so);
+            nlohmann::json jo = { {"val", 5}, {"type", "Long"}, {"name" , "MarkerSize"} };
+            collection->m_config.push_back(jo);
         }
 
 
@@ -344,6 +352,8 @@ public:
             collection->GetItemList()->AddTooltipExpression(te.fName, te.fExpression);
         }
 
+        collection->m_builder = glBuilder;
+
         collection->GetItemList()->SetItemsChangeDelegate([&](REveDataItemList *collection, const REveDataCollection::Ids_t &ids)
                                                           { this->ModelChanged(collection, ids); });
         collection->GetItemList()->SetFillImpliedSelectedDelegate([&](REveDataItemList *collection, REveElement::Set_t &impSelSet, const std::set<int> &sec_idcs)
@@ -409,8 +419,8 @@ public:
 
   void UpdateTitle()
    {
-      printf("======= update title %lld/%lld event ifnfo run=[%d], lumi=[%d], event = [%lld]\n", m_event->m_eventIdx, m_event->GetNumEvents(),
-             m_event->m_eventInfo.lumi(), m_event->m_eventInfo.run(), m_event->m_eventInfo.event());
+      // printf("======= update title %lld/%lld event ifnfo run=[%d], lumi=[%d], event = [%lld]\n", m_event->m_eventIdx, m_event->GetNumEvents(),
+      //      m_event->m_eventInfo.lumi(), m_event->m_eventInfo.run(), m_event->m_eventInfo.event());
       SetTitle(Form("%lld/%lld/%d/%d/%lld",m_event->m_eventIdx, m_event->GetNumEvents(), m_event->m_eventInfo.lumi() , m_event->m_eventInfo.run(),  m_event->m_eventInfo.event()));
       StampObjProps();
    }
