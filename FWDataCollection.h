@@ -30,18 +30,18 @@ class FWDataCollection : public ROOT::Experimental::REveDataCollection
 
     void UpdatePBParameter(char *name, char *val)
     {
-        // printf("Udate PB paramter %s %s \n", name, val);
+        printf("Udate PB paramter %s %s \n", name, val);
         std::string ssn = name;
         for (auto &elem : m_config)
         {
             std::string confn = elem["name"];
             if (confn == ssn)
             {
-                // std::cout << "match " << elem.dump(3) << "\n";
+                std::cout << "match " << elem.dump(3) << "\n";
                 std::string typen = elem["type"];
                 if (typen == "Bool")
                 {
-                    int x = strcmp("val", "true");
+                    int x = strcmp(val, "true");
                     elem["val"] = (x == 0);
                 }
                 else if (typen == "Long")
@@ -103,7 +103,7 @@ class FWDataCollection : public ROOT::Experimental::REveDataCollection
             std::string confn = elem["name"];
             if (confn == name)
             {
-                //std::cout << "match " << elem.dump(3) << "\n";
+                // std::cout << "gert bool match " << elem.dump(3) << "\n";
                 std::string typen = elem["type"];
                 /*
                 const char* val = elem["val"];
