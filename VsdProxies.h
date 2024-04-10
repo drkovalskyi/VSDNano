@@ -29,8 +29,11 @@
 #include "ROOT/REveCaloData.hxx"
 #include "ROOT/REveSelection.hxx"
 #include "ROOT/REveVector.hxx"
+#include "ROOT/REveEllipsoid.hxx"
 #include "TGeoBBox.h"
 #include "TGeoTube.h"
+#include "TMatrixDEigen.h"
+#include "TMatrixDSym.h"
 
 using namespace ROOT::Experimental;
 
@@ -125,10 +128,9 @@ public:
    {
       REveDataProxyBuilderBase::SetCollection(collection);
       auto fwc = dynamic_cast<FWDataCollection *>(collection);
-      nlohmann::json so = {{"val", false}, {"type", "Bool"}, {"name", "DrawEllipse"}};
-      fwc->m_config.push_back(so);
-      nlohmann::json jo = {{"val", 5}, {"type", "Long"}, {"name", "MarkerSize"}};
-      fwc->m_config.push_back(jo);
+      fwc->m_config.push_back({{"val", true}, {"type", "Bool"}, {"name", "DrawEllipse"}});
+      fwc->m_config.push_back({{"val", 10}, {"type", "Long"}, {"name", "ScaleEllipse"}});
+      fwc->m_config.push_back({{"val", 5}, {"type", "Long"}, {"name", "MarkerSize"}});
    }
 
    using REveDataSimpleProxyBuilderTemplate<VsdVertex>::BuildItem;
@@ -138,39 +140,42 @@ public:
       long markerSize = item->getLongParameter("MarkerSize");
       bool drawEllipse = item->getBoolParameter("DrawEllipse");
 
+      //reco::Vertex::Error e = iData.error();
 
-    /*
-      reco::Vertex::Error e = iData.error();
+      printf("draw ellipse %d \n", drawEllipse);
 
-      auto item = dynamic_cast<FWWebEventItem *>(Collection());
-      auto context = fireworks::Context::getInstance();
-
-      if (item->getConfig()->value<bool>("Draw Ellipse"))
+      if (drawEllipse)
       {
-         TMatrixDSym xxx(3);
+         TMatrixDSym symMtx(3);
          for (int i = 0; i < 3; i++)
             for (int j = 0; j < 3; j++)
             {
-               // printf("Read error [%d,%d] %g\n", i, j, e(i,j));
-               xxx(i, j) = e(i, j);
+               // printf("Read error [%d,%d] %g\n", i, j, iData.m_error[i][j]);
+               symMtx(i, j) = iData.m_error[i][j];
             }
-         //xxx.Print();
+         symMtx.Print();
 
-         TMatrixDEigen eig(xxx);
-         TVectorD xxxEig(eig.GetEigenValues());
-         //  xxxEig.Print();
-         xxxEig = xxxEig.Sqrt();
+         TMatrixDEigen mtx(symMtx);
 
-         TMatrixD vecEig = eig.GetEigenVectors();
+         TVectorD eigValsVec(mtx.GetEigenValues());
+         eigValsVec.Print();
+         if (eigValsVec.Min() < 0) {
+            std::cout << "Negative Eig value !\n";
+            return;
+         }
+         eigValsVec = eigValsVec.Sqrt();
+
+         TMatrixD vecEig = mtx.GetEigenVectors();
          // vecEig.Print();
 
-         float scale = item->getConfig()->value<long>("Scale Ellipse");
 
+         long scale = item->getLongParameter("ScaleEllipse");
          REveVector v[3];
          for (int i = 0; i < 3; ++i)
          {
             v[i].Set(vecEig(0, i), vecEig(1, i), vecEig(2, i));
-            v[i] *= xxxEig(i) * scale;
+            v[i] *= eigValsVec(i) * scale;
+            // v[i].Dump();
          }
          REveEllipsoid *ell = new REveEllipsoid("VertexError");
          ell->RefMainTrans().SetPos(iData.x(), iData.y(), iData.z());
@@ -178,7 +183,7 @@ public:
          ell->SetBaseVectors(v[0], v[1], v[2]);
          ell->Outline();
          SetupAddElement(ell, iItemHolder);
-      }*/
+      }
 
       // vertex position
       //
