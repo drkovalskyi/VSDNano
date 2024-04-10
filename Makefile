@@ -11,6 +11,7 @@ nanovsd: libVsdNanoDict.so MyVsdNanoTree.class
 clean:
 	rm -f reveNtuple VsdDict.cc VsdDict_rdict.pcm libVsdDict.so
 	rm -f mt_read mt_write libVsdNanoDict.so *.class
+	rm -f service
 
 ### VsdTree and dicts
 

@@ -255,7 +255,7 @@ public:
     void
     addCollection(VsdCollection *vsdc)
     {
-        FWDataCollection *collection = new FWDataCollection(vsdc->m_name);
+        FWDataCollection *collection = new FWDataCollection(vsdc->m_name, vsdc->m_varConfig);
         m_collections->AddElement(collection);
         std::string class_name = "Vsd" + vsdc->m_type; // !!! This works beacuse it is a root macro
 
@@ -343,7 +343,7 @@ public:
             collection->GetItemList()->AddTooltipExpression(te.fName, te.fExpression);
         }
 
-        collection->m_builder = glBuilder;
+        collection->setGLBuilder(glBuilder);
 
         collection->GetItemList()->SetItemsChangeDelegate([&](REveDataItemList *collection, const REveDataCollection::Ids_t &ids)
                                                           { this->ModelChanged(collection, ids); });

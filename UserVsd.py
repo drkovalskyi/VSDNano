@@ -56,6 +56,11 @@ Vtree.Branch("EventInfo", eiv)
 
 vertv = ROOT.std.vector('VsdVertex')()
 vertBr = Vtree.Branch("ErrVertex", vertv)
+vtxCfg = {
+   "color" : ROOT.kGreen +4,
+   "var" : [ {"name": "ScaleEllipse", "type" : "Long", "val" : 100 }, {"name": "MarkerSize", "type" : "Long", "val" : 10 }]
+}
+vertBr.SetTitle(json.dumps(vtxCfg))
 
 for i in range(10):
 

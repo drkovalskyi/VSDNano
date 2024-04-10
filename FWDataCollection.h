@@ -8,17 +8,46 @@
 
 class FWDataCollection : public ROOT::Experimental::REveDataCollection
 {
+    private:
+    ROOT::Experimental::REveDataProxyBuilderBase * m_builder {nullptr};
+
     public:
-    FWDataCollection(const std::string &n = "FWDataCollection", const std::string &t = "") : 
-      ROOT::Experimental::REveDataCollection(n, t)
+    FWDataCollection(const std::string &n = "FWDataCollection", const std::string &varconfig = "") : 
+      ROOT::Experimental::REveDataCollection(n, "")
     {
-        m_config = nlohmann::json::array();
+        if (varconfig.empty())
+        {
+            m_config = nlohmann::json::array();
+        }
+        else {
+            m_config = nlohmann::json::parse(varconfig);
+        }
     }
     ~FWDataCollection() override {}
 
     // config handling
     nlohmann::json m_config;
-    ROOT::Experimental::REveDataProxyBuilderBase * m_builder {nullptr};
+
+    bool hasConfigWithName(const std::string& n)
+    {
+        for (auto &elem : m_config)
+            if (elem["name"] == n)
+                return true;
+        return false;
+    }
+
+    void assertParamter(nlohmann::json j)
+    {
+        if (hasConfigWithName(j["name"]))
+        return;
+        m_config.push_back(j);
+    }
+
+
+    void setGLBuilder(ROOT::Experimental::REveDataProxyBuilderBase * ib)
+    {
+       m_builder = ib;
+    }
 
     int WriteCoreJson(nlohmann::json &j, int rnr_offset) override
     {

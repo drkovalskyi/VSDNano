@@ -184,6 +184,7 @@ public:
    std::string m_type;
    Color_t m_color{kBlue};
    std::string m_filter;
+   std::string m_varConfig;
    std::vector<VsdBase *> m_list;
 
    virtual void fill() {}

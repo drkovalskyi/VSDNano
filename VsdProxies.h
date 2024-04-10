@@ -128,9 +128,14 @@ public:
    {
       REveDataProxyBuilderBase::SetCollection(collection);
       auto fwc = dynamic_cast<FWDataCollection *>(collection);
+      /*
       fwc->m_config.push_back({{"val", true}, {"type", "Bool"}, {"name", "DrawEllipse"}});
       fwc->m_config.push_back({{"val", 10}, {"type", "Long"}, {"name", "ScaleEllipse"}});
       fwc->m_config.push_back({{"val", 5}, {"type", "Long"}, {"name", "MarkerSize"}});
+      */
+      fwc->assertParamter({{"val", true}, {"type", "Bool"}, {"name", "DrawEllipse"}});
+      fwc->assertParamter({{"val", 10}, {"type", "Long"}, {"name", "ScaleEllipse"}});
+      fwc->assertParamter({{"val", 5}, {"type", "Long"}, {"name", "MarkerSize"}});
    }
 
    using REveDataSimpleProxyBuilderTemplate<VsdVertex>::BuildItem;

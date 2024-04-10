@@ -101,6 +101,9 @@ public:
                         if (el.key() == "purpose") {
                             vc->m_purpose = el.value();
                         }
+                        if (el.key() == "var") {
+                            vc->m_varConfig = el.value().dump();
+                        }
                     }
                 }
                 catch (nlohmann::json::parse_error &ex)
