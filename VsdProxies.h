@@ -142,8 +142,6 @@ public:
 
       //reco::Vertex::Error e = iData.error();
 
-      printf("draw ellipse %d \n", drawEllipse);
-
       if (drawEllipse)
       {
          TMatrixDSym symMtx(3);
@@ -158,7 +156,6 @@ public:
          TMatrixDEigen mtx(symMtx);
 
          TVectorD eigValsVec(mtx.GetEigenValues());
-         eigValsVec.Print();
          if (eigValsVec.Min() < 0) {
             std::cout << "Negative Eig value !\n";
             return;
