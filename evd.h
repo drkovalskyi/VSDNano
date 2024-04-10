@@ -645,7 +645,7 @@ void evd(const char* data_path)
 
 	   ROOT::RWebWindowsManager::SetLoopbackMode(false);
 	      ROOT::Experimental::gEve->GetWebWindow()->SetRequireAuthKey(false); 
-    ROOT::Experimental::gEve->GetWebWindow()->SetClientVersion("10.1");
+    ROOT::Experimental::gEve->GetWebWindow()->SetClientVersion("10.2");
     std::string locPath = "ui5";
     eveMng->AddLocation("unidir/", locPath);
     eveMng->SetDefaultHtmlPage("file:unidir/eventDisplay.html");
