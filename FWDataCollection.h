@@ -23,7 +23,7 @@ class FWDataCollection : public ROOT::Experimental::REveDataCollection
     int WriteCoreJson(nlohmann::json &j, int rnr_offset) override
     {
         int res = REveDataCollection::WriteCoreJson(j, -1);
-        j["PBconfig"] = m_config;
+        j["var"] = m_config;
 
         return res;
     }

@@ -17,8 +17,8 @@ sap.ui.define(['rootui5/eve7/controller/Ged.controller',
      buildFWDataCollectionSetter : function (el) {
          this.buildREveDataCollectionSetter(el);
          this.oModel.setProperty("/title", this.editorElement.fName + " Editor");
-         if (el.PBconfig) {
-         el.PBconfig.forEach((par) => {
+         if (el.var) {
+         el.var.forEach((par) => {
              let fname = "makePBC" + par.type + "Setter";
              this[fname](par);
          });
