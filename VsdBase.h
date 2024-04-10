@@ -26,21 +26,32 @@ public:
    float m_x;
    float m_y; 
    float m_z;
+   double m_error[3][3];
 
 public:
    VsdVertex() = default;
-   VsdVertex& operator=(const VsdVertex&) = default;
-   VsdVertex(float ix, float iy, float iz) { m_x= ix; m_y = iy; m_z = iz;}
+   VsdVertex &operator=(const VsdVertex &) = default;
+   VsdVertex(float ix, float iy, float iz)
+   {
+      m_x = ix;
+      m_y = iy;
+      m_z = iz;
+      for (int i = 0; i < 3; i++)
+         for (int j = 0; j < 3; j++)
+            m_error[i][j] = 0;
+   }
    virtual ~VsdVertex(){}
    void dump() { printf("VsdVertex x:%.2f, y:%.2f, z:%.2f \n", m_x, m_y,m_z); }
 
    float x() const { return m_x; }
    float y() const { return m_y; }
    float z() const { return m_z; }
-
    void setX(float x) {m_x = x;}
    void setY(float x) {m_y = x;}
    void setZ(float x) {m_z = x;}
+
+   void setErr(int i, int j, double val) { m_error[i][j] = val; }
+   float getErr(int i, int j) { return m_error[i][j];}
 };
 
 /////////////////////////////////////////////////
