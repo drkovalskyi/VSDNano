@@ -10,12 +10,12 @@
             <OverflowToolbar>
                <Title text="{ged>/title}"/>
                <ToolbarSpacer/>
-               <Button icon="sap-icon://hint" press="showEDMInfo"/>
+               <!--Button icon="sap-icon://hint" press="showEDMInfo"/-->
                <Button icon="sap-icon://decline" press="closeGedEditor"/>
             </OverflowToolbar>
         </headerToolbar>
         <content>
-           <l:VerticalLayout id="GED" width="100%">
+           <l:VerticalLayout id="GED" width="70%">
            </l:VerticalLayout>
         </content>
     </Panel>
