@@ -270,15 +270,6 @@ public:
             throw( std::runtime_error("addCollection " +  vsdc->m_name ) );
         }
 
-        if (class_name == "VsdVertex")
-        {
-            nlohmann::json so = { {"val", false}, {"type", "Bool"}, {"name" , "DrawEllipse"} };
-            collection->m_config.push_back(so);
-            nlohmann::json jo = { {"val", 5}, {"type", "Long"}, {"name" , "MarkerSize"} };
-            collection->m_config.push_back(jo);
-        }
-
-
         collection->SetItemClass(TClass::GetClass(class_name.c_str()));
         collection->SetMainColor(vsdc->m_color);
         collection->SetFilterExpr(vsdc->m_filter.c_str());

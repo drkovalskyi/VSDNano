@@ -120,6 +120,16 @@ void addRhoZEnergyProjection(REveDataProxyBuilderBase *pb, REveElement *containe
 class VertexProxyBuilder : public REveDataSimpleProxyBuilderTemplate<VsdVertex>
 {
 public:
+   using REveDataProxyBuilderBase::SetCollection;
+   void SetCollection(REveDataCollection * collection) override
+   {
+      REveDataProxyBuilderBase::SetCollection(collection);
+      auto fwc = dynamic_cast<FWDataCollection *>(collection);
+      nlohmann::json so = {{"val", false}, {"type", "Bool"}, {"name", "DrawEllipse"}};
+      fwc->m_config.push_back(so);
+      nlohmann::json jo = {{"val", 5}, {"type", "Long"}, {"name", "MarkerSize"}};
+      fwc->m_config.push_back(jo);
+   }
 
    using REveDataSimpleProxyBuilderTemplate<VsdVertex>::BuildItem;
    virtual void BuildItem(const VsdVertex &iData, int iIndex, REveElement *iItemHolder, const REveViewContext *vc) override
