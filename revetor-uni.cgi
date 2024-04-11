@@ -11,6 +11,7 @@ use CGI;
 use IO::Socket qw(AF_INET SOCK_STREAM);
 use IO::Socket::Timeout;
 use File::Basename;
+use JSON;
 
 #use Data::Dumper;
 #$Data::Dumper::Sortkeys = 1;
@@ -45,7 +46,7 @@ if ($IS_TEST)
   $LOGFILE_PFX = $ENV{'DOCUMENT_ROOT'} . $LOGFILE_WWW;
   $CONFIG_WWW = "/config-test/";
 }
-$AUTO_REDIRECT=0;
+$AUTO_REDIRECT=1;
 $SOURCES = {}; # name -> prefix mapping
 $error_str;
 
@@ -96,17 +97,17 @@ $PRINT_ENV      = 0;
 $PRINT_TUNNEL_SUGGESTION = 0;
 
 # Sample dir setup the same way on phi1 and on fireworks
-$SAMPLE_DIR = "/data2/relval-samples";
+$SAMPLE_DIR = "/home/viz/universal-format/samples/";
 
 @SAMPLES = qw{
-  RelValMuMuMiniaod.root
-  RelValMuMureco.root
-  RelValRecHitReco.root 
-  RelValTTBarReco.root
-  RelValZTTMiniaod.root
-  RelVallZTTGenSimReco.root      
-  RelValZZMiniaod.root
+UserVsd-0.root
+UserVsd-2.root
+UserVsdCaloTower.root
+DisplacedJet.root
 };
+
+# not workign samples NoBPTX.root MinimumBias.root DisplacedJet.root
+
 
 # CGI script to connect to an Event Display server.
 #
@@ -130,7 +131,7 @@ sub cgi_beg
 <html>
 <head>
 <link rel="stylesheet" type="text/css" href="/css/main.css" />
-  <title>Unviversal Data Formats</title>
+  <title>Universal Data Formats</title>
 </head>
 <body>
 FNORD
@@ -359,7 +360,7 @@ if ($q->param('Action') =~ m/^Run/)
     cgi_print "Processing '$fn_str'";
 
     my @files = split(/\s+/, $fn_str);
-    cgi_print "Processing ahh {$fn_str}";
+    cgi_print "Processing {$fn_str}";
     my $fcnt = 0;
     $error_str = undef;
     foreach my $fi (@files)
@@ -401,15 +402,15 @@ if ($q->param('Action') =~ m/^Run/)
     }
     else
     {
-       $error_str = "VSD Configration file is mandatory";
+    $vsdConfig = "/eos/user/a/amraktad/Fireworks-Test/nano.json";
     }
     $file = join(" ", @files) unless $error_str;
   }
-  elsif ($q->param('Action') =~ m/^RunTest/)
+  elsif ($q->param('Action') =~ m/^RunTest (.+\.root)/)
   {
 
+    $file = "${SAMPLE_DIR}/$1";
     cgi_print("run test");
-    $file = "/eos/user/a/amraktad/Fireworks-Test/nano.root";
     $vsdConfig = "/eos/user/a/amraktad/Fireworks-Test/nano.json";
     cgi_print("run test 22");
   }
@@ -432,7 +433,7 @@ else
 {
   ## DATA ##
   my $shost = $REDIR_HOST eq "fireworks.cern.ch"  ? "CERN" : "UC San Diego";
-  print"<h2 style=\"color:navy\">Ntuple visualization @ $shost </h2>";
+  print"<h2 style=\"color:navy\">Universal data format visualization @ $shost </h2>";
   cgi_print "Hello ${CERN_GName}, choose your action below.";
 
   cgi_print "Hostname $EVE_HOST, port $EVE_PORT ";
@@ -455,23 +456,23 @@ else
   # }
 
   ## FWC CONFIGURATION ##
-  print("<h3>JSON Configuration </h3>");
-  print("Enter path to json configuration <br>");
-  print $q->textfield('VSDconfig', '', 150, 512), "\n";
-
   print "<table>\n";
 print "\n</br><br>\n";
 
-print join("\n", map { "<tr><td>" . $q->submit('Action', "Run Event Display $_") . "</td></tr><tr><td>Note: file paths must begin with ... </td><td>" . $SOURCES->{$_}{'desc'} . "</td></tr>"} (keys %$SOURCES));
+print join("\n", map { "<tr><td>" . $q->submit('Action', "Run Event Display $_") . "</td></tr><tr><td>" . $SOURCES->{$_}{'desc'} . "</td></tr>"} (keys %$SOURCES));
   
 
   print "</table>\n";
 print "\n</br>\n";
 print("<hr />");
 
+  for my $f (@SAMPLES)
+  {
     print "<br>\n";
-    print $q->submit('Action', "RunTest Example");
-    print " with the example configuration <a href=https://raw.githubusercontent.com/alja/VsdNano/main/examples/nano.json>example.json</a> ";
+    print $q->submit('Action', "RunTest $f");
+  }
+  print "<br><br>\n";
+
   print $q->end_form();
 }
 
