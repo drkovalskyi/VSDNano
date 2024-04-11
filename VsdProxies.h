@@ -1,5 +1,6 @@
 #include "VsdBase.h"
 #include "lego_bins.h"
+#include "FWDataCollection.h"
 
 #include "TROOT.h"
 #include "TH2.h"
@@ -28,8 +29,11 @@
 #include "ROOT/REveCaloData.hxx"
 #include "ROOT/REveSelection.hxx"
 #include "ROOT/REveVector.hxx"
+#include "ROOT/REveEllipsoid.hxx"
 #include "TGeoBBox.h"
 #include "TGeoTube.h"
+#include "TMatrixDEigen.h"
+#include "TMatrixDSym.h"
 
 using namespace ROOT::Experimental;
 
@@ -119,42 +123,61 @@ void addRhoZEnergyProjection(REveDataProxyBuilderBase *pb, REveElement *containe
 class VertexProxyBuilder : public REveDataSimpleProxyBuilderTemplate<VsdVertex>
 {
 public:
+   using REveDataProxyBuilderBase::SetCollection;
+   void SetCollection(REveDataCollection * collection) override
+   {
+      REveDataProxyBuilderBase::SetCollection(collection);
+      auto fwc = dynamic_cast<FWDataCollection *>(collection);
+      /*
+      fwc->m_config.push_back({{"val", true}, {"type", "Bool"}, {"name", "DrawEllipse"}});
+      fwc->m_config.push_back({{"val", 10}, {"type", "Long"}, {"name", "ScaleEllipse"}});
+      fwc->m_config.push_back({{"val", 5}, {"type", "Long"}, {"name", "MarkerSize"}});
+      */
+      fwc->assertParamter({{"val", true}, {"type", "Bool"}, {"name", "DrawEllipse"}});
+      fwc->assertParamter({{"val", 10}, {"type", "Long"}, {"name", "ScaleEllipse"}});
+      fwc->assertParamter({{"val", 5}, {"type", "Long"}, {"name", "MarkerSize"}});
+   }
 
    using REveDataSimpleProxyBuilderTemplate<VsdVertex>::BuildItem;
    virtual void BuildItem(const VsdVertex &iData, int iIndex, REveElement *iItemHolder, const REveViewContext *vc) override
    {
-    /*
-      reco::Vertex::Error e = iData.error();
+      auto item = dynamic_cast<FWDataCollection *>(Collection());
+      long markerSize = item->getLongParameter("MarkerSize");
+      bool drawEllipse = item->getBoolParameter("DrawEllipse");
 
-      auto item = dynamic_cast<FWWebEventItem *>(Collection());
-      auto context = fireworks::Context::getInstance();
+      //reco::Vertex::Error e = iData.error();
 
-      if (item->getConfig()->value<bool>("Draw Ellipse"))
+      if (drawEllipse)
       {
-         TMatrixDSym xxx(3);
+         TMatrixDSym symMtx(3);
          for (int i = 0; i < 3; i++)
             for (int j = 0; j < 3; j++)
             {
-               // printf("Read error [%d,%d] %g\n", i, j, e(i,j));
-               xxx(i, j) = e(i, j);
+               // printf("Read error [%d,%d] %g\n", i, j, iData.m_error[i][j]);
+               symMtx(i, j) = iData.m_error[i][j];
             }
-         //xxx.Print();
+         symMtx.Print();
 
-         TMatrixDEigen eig(xxx);
-         TVectorD xxxEig(eig.GetEigenValues());
-         //  xxxEig.Print();
-         xxxEig = xxxEig.Sqrt();
+         TMatrixDEigen mtx(symMtx);
 
-         TMatrixD vecEig = eig.GetEigenVectors();
+         TVectorD eigValsVec(mtx.GetEigenValues());
+         if (eigValsVec.Min() < 0) {
+            std::cout << "Negative Eig value !\n";
+            return;
+         }
+         eigValsVec = eigValsVec.Sqrt();
+
+         TMatrixD vecEig = mtx.GetEigenVectors();
          // vecEig.Print();
 
-         float scale = item->getConfig()->value<long>("Scale Ellipse");
 
+         long scale = item->getLongParameter("ScaleEllipse");
          REveVector v[3];
          for (int i = 0; i < 3; ++i)
          {
             v[i].Set(vecEig(0, i), vecEig(1, i), vecEig(2, i));
-            v[i] *= xxxEig(i) * scale;
+            v[i] *= eigValsVec(i) * scale;
+            // v[i].Dump();
          }
          REveEllipsoid *ell = new REveEllipsoid("VertexError");
          ell->RefMainTrans().SetPos(iData.x(), iData.y(), iData.z());
@@ -162,7 +185,7 @@ public:
          ell->SetBaseVectors(v[0], v[1], v[2]);
          ell->Outline();
          SetupAddElement(ell, iItemHolder);
-      }*/
+      }
 
       // vertex position
       //
@@ -170,7 +193,7 @@ public:
       ps->SetMainColor(kGreen + 10);
       ps->SetNextPoint(iData.x(), iData.y(), iData.z());
       ps->SetMarkerStyle(4);
-      ps->SetMarkerSize(4);
+      ps->SetMarkerSize(markerSize);
       SetupAddElement(ps, iItemHolder );
 
 /*
@@ -363,7 +386,7 @@ public:
 
       REveRecTrack t;
       t.fBeta = 1.;
-      t.fV = REveVector(); // iData.vx(), iData.vy(), iData.vz());
+      t.fV = REveVector(muon.posX(), muon.posY(), muon.posZ());
       t.fP = REveVector(px, py, pz);
       t.fSign = muon.m_charge;
 

@@ -6,8 +6,10 @@ sap.ui.define(['rootui5/eve7/controller/Summary.controller',
                "sap/m/Text",
 	       "sap/m/ColumnListItem",
 	       "sap/ui/model/Sorter",
+		   "sap/ui/core/mvc/XMLView",
+		   "sap/ui/layout/SplitterLayoutData",
    "rootui5/eve7/controller/Ged.controller"
-              ], function(SummaryController, EveManager, JSONModel, Table, Column, Text,ColumnListItem, Sorter, GedController) {
+              ], function(SummaryController, EveManager, JSONModel, Table, Column, Text,ColumnListItem, Sorter, XMLView, SplitterLayoutData, GedController) {
    "use strict";
 
    return SummaryController.extend("custom.MyNewSummary", {
@@ -37,6 +39,27 @@ sap.ui.define(['rootui5/eve7/controller/Summary.controller',
 
          return this.createSummaryModel([], src, "/");
       },
+
+      showGedEditor: function (elementId) {
+
+		var sumSplitter = this.byId("sumSplitter");
+
+		if (!this.ged) {
+		   var pthis = this;
+
+		   XMLView.create({
+			  viewName: "custom.view.VsdGed",
+			  layoutData: new SplitterLayoutData("sld", { size: "30%" }),
+			  height: "100%"
+		   }).then(function (oView) {
+			  pthis.ged = oView;
+			  pthis.ged.getController().setManager(pthis.mgr);
+			  pthis.ged.getController().showGedEditor(sumSplitter, elementId);
+		   });
+		} else {
+		   this.ged.getController().showGedEditor(sumSplitter, elementId);
+		}
+	 },
 
       addCollection: function (evt){
          if (!this.table)
