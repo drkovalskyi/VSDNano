@@ -366,6 +366,11 @@ void revetor()
    // also do REveManager::Create() here.
    TApplication app("REveService", 0, 0);
 
+   gSystem->Load("libVsdDict.so");
+   auto *ff = TFile::Open("/home/viz/universal-format/samples//UserVsd-0.root");
+   ff->Close();
+   delete ff;
+
    TServerSocket *ss = new TServerSocket(SERVICE_PORT, kTRUE);
    if (!ss->IsValid())
    {
