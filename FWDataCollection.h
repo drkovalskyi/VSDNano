@@ -31,9 +31,12 @@ class FWDataCollection : public ROOT::Experimental::REveDataCollection
     bool hasConfigWithName(const std::string& n)
     {
         for (auto &elem : m_config)
-            if (elem["name"] == n)
+{
+std::string cfgn = elem["name"];
+            if (cfgn == n)
                 return true;
-        return false;
+} 
+       return false;
     }
 
     void assertParamter(nlohmann::json j)
