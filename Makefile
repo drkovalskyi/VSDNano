@@ -57,8 +57,9 @@ ${NANO_ROOT}:
 evd: UserVsd.root libVsdDict.so
 	root.exe  -e 'gSystem->Load("libVsdDict.so")' 'evd.h("UserVsd.root")'
 
-service: VsdDict.cc
-	c++ ${ROOT_CFLAGS} `root-config --libs`  -lROOTEve -lROOTWebDisplay -lGeom -o $@ service.cc lego_bins.h VsdTree.cc VsdDict.cc
+service: service.cc # libVsdDict.so
+	c++ ${ROOT_CFLAGS} `root-config --libs`  -lROOTEve -lROOTWebDisplay -lGeom -o $@ service.cc lego_bins.h # VsdTree.cc
+	# c++ ${ROOT_CFLAGS} `root-config --libs`  -lROOTEve -lROOTWebDisplay -lGeom -L. -lVsdDict -o $@ service.cc lego_bins.h VsdTree.cc
 
 # single: single.cc
 #	c++ ${ROOT_CFLAGS} `root-config --libs` -L. -lVsdDict -Wl,-rpath=. -lROOTEve -lROOTWebDisplay -lGeom -o $@ single.cc
